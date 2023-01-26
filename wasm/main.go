@@ -1,15 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
 	_ "image/png"
 	"log"
 	"math/rand"
+	"os"
 
-	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
@@ -30,14 +33,26 @@ var (
 	dogSprites  map[SpriteStance]Sprite
 )
 
+type Character struct {
+	audioCharacter AudioCharacter
+}
+
+type AudioCharacter struct {
+	sound0 *audio.Player
+	sound1 *audio.Player
+	sound2 *audio.Player
+	sound3 *audio.Player
+}
+
 type Game struct {
-	audioContext *audio.Context
+	audioContext    *audio.Context
 	count           int
 	notes           []Note
 	notesToFadeAway []NoteFadeAway
 	typing          bool
 	missed          int
 	score           int
+	character1         Character
 }
 
 type NoteFadeAway struct {
@@ -187,16 +202,53 @@ func main() {
 	fmt.Println("allo?")
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 	ebiten.SetWindowTitle("Animation (Ebiten Demo)")
+
+	audioCtx := audio.NewContext(48000)
+	player1 := initPlayer1(audioCtx)
+
 	if err := ebiten.RunGame(&Game{
-		audioContext:    audio.NewContext(48000),
+		audioContext:    audioCtx,
 		count:           frameCount,
 		notes:           []Note{},
 		notesToFadeAway: []NoteFadeAway{},
 		typing:          false,
 		missed:          0,
 		score:           0,
+		character1: Character{
+			audioCharacter: player1,
+		},
 	}); err != nil {
 		log.Fatal(err)
 	}
 
+}
+
+func initPlayer1(audioCtx *audio.Context) AudioCharacter {
+	//sound TODO https://ebitengine.org/en/examples/audio.html
+
+	return AudioCharacter{
+		sound0: getPlayer("./res/bark_0.mp3", audioCtx),
+		sound1: getPlayer("./res/bark_1.mp3", audioCtx),
+		sound2: getPlayer("./res/bark_2.mp3", audioCtx),
+		sound3: getPlayer("./res/bark_3.mp3", audioCtx),
+	}
+}
+
+func getPlayer(fileName string, audioCtx *audio.Context) *audio.Player {
+	b, err := os.ReadFile(fileName) // just pass the file name
+	if err != nil {
+		fmt.Print("readfile")
+		panic(err)
+	}
+	s, err := mp3.DecodeWithoutResampling(bytes.NewReader(b))
+	if err != nil {
+		fmt.Print("decode")
+		panic(err)
+	}
+	p, err := audioCtx.NewPlayer(s)
+	if err != nil {
+		fmt.Print("new player")
+		panic(err)
+	}
+	return p
 }
