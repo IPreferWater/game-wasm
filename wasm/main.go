@@ -7,7 +7,6 @@ import (
 	"image/color"
 	_ "image/png"
 	"log"
-	"math/rand"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,12 +16,12 @@ import (
 )
 
 const (
-	screenWidth  = 320
+	screenWidth  = 512
 	screenHeight = 240
 
 	frameCount = 8
 
-	noteSize = 30
+	noteSize = 25
 
 	lineMiddleY      = 190
 	lineMiddleMargin = 25
@@ -52,7 +51,7 @@ type Game struct {
 	typing          bool
 	missed          int
 	score           int
-	character1         Character
+	character1      Character
 }
 
 type NoteFadeAway struct {
@@ -69,10 +68,10 @@ type Note struct {
 
 func (g *Game) Update() error {
 
-	secondUpdate := false
-	if g.count%60 == 0 {
+	/*secondUpdate := false
+	if g.count%20 == 0 {
 		secondUpdate = true
-	}
+	}*/
 
 	g.count++
 
@@ -93,11 +92,18 @@ func (g *Game) Update() error {
 	}
 
 	// turn to defeat the notes
-	if secondUpdate {
+	/*if secondUpdate {
 		g.notes = append(g.notes, Note{
 			x:    0,
 			y:    20,
 			line: rand.Intn(4),
+		})
+	}*/
+	if val, ok := williamTellOverture[g.count]; ok {
+		g.notes = append(g.notes, Note{
+			x:    0,
+			y:    20,
+			line: val.line,
 		})
 	}
 
@@ -135,13 +141,14 @@ func drawCharacter(sprite Sprite, frameCount int, screen *ebiten.Image) {
 	//sx := (fff/sprite.width)%float64(sprite.spriteNumber)
 	x1 := sprite.width * spriteIdx
 	x2 := sprite.width * (spriteIdx + 1)
-	s := fmt.Sprintf("spriteIdx %d \n x1 %d x2 %d", spriteIdx, x1, x2)
-	ebitenutil.DebugPrint(screen, s)
 	screen.DrawImage(runnerImage.SubImage(image.Rect(x1, sprite.yStar, x2, sprite.yStar+sprite.height)).(*ebiten.Image), op)
 }
 func (g *Game) Draw(screen *ebiten.Image) {
 
 	ebitenutil.DrawRect(screen, 2, 2, 30, 30, color.RGBA{200, 50, 150, 150})
+
+	//layouts
+	ebitenutil.DrawRect(screen, 2, 2, screenWidth/3, screenHeight*0.9, ParseHexColorFast("#0074D9"))
 	ebitenutil.DrawLine(screen, 0, lineMiddleY, screenWidth, screenHeight-50, color.RGBA{200, 50, 150, 150})
 	ebitenutil.DrawLine(screen, 0, lineMiddleY-lineMiddleMargin, screenWidth, lineMiddleY-lineMiddleMargin, color.RGBA{100, 80, 150, 150})
 	ebitenutil.DrawLine(screen, 0, lineMiddleY+lineMiddleMargin, screenWidth, lineMiddleY+lineMiddleMargin, color.RGBA{220, 140, 90, 150})
@@ -149,9 +156,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawCharacter(dogSprites[Playing], g.count, screen)
 
 	for _, note := range g.notes {
-		x := (screenWidth/4)*note.line + 20 // 20 as layout
+		x := ((screenWidth/3)/4)*note.line + 20 // 20 as layout
 		if g.typing {
-			ebitenutil.DrawRect(screen, float64(x), float64(note.y), 30, 30, color.RGBA{200, 50, 150, 150})
+			ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, color.RGBA{200, 50, 150, 150})
 		} else {
 
 			ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, color.NRGBA{250, 177, 160, 200})
@@ -160,7 +167,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	for _, noteFadeAway := range g.notesToFadeAway {
-		x := (screenWidth/4)*noteFadeAway.note.line + 20 // 20 as layout
+		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
 
 		ebitenutil.DrawRect(screen, float64(x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
 	}
@@ -173,8 +180,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		if t > 9 {
 			t = 20 - t - 1
 		}
-		/*s := fmt.Sprintf("score : %d\nmissed : %d\n frame count : %d\n test : %d", g.score, g.missed, g.count, t)
-		ebitenutil.DebugPrint(screen, s)*/
+		s := fmt.Sprintf("score : %d\nmissed : %d\n frame count : %d\n test : %d", g.score, g.missed, g.count, t)
+		ebitenutil.DebugPrint(screen, s)
 	}
 }
 
@@ -197,6 +204,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+
 	runnerImage = ebiten.NewImageFromImage(img)
 	dogSprites = initDogSprites()
 	fmt.Println("allo?")
@@ -204,6 +213,8 @@ func main() {
 	ebiten.SetWindowTitle("Animation (Ebiten Demo)")
 
 	audioCtx := audio.NewContext(48000)
+	initWillTellOverture()
+	playWillTellOvertur(audioCtx)
 	player1 := initPlayer1(audioCtx)
 
 	if err := ebiten.RunGame(&Game{
@@ -222,7 +233,10 @@ func main() {
 	}
 
 }
-
+func playWillTellOvertur(audioCtx *audio.Context){
+	p :=getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx)
+	p.Play()
+}
 func initPlayer1(audioCtx *audio.Context) AudioCharacter {
 	//sound TODO https://ebitengine.org/en/examples/audio.html
 
@@ -251,4 +265,36 @@ func getPlayer(fileName string, audioCtx *audio.Context) *audio.Player {
 		panic(err)
 	}
 	return p
+}
+
+func ParseHexColorFast(s string) (c color.RGBA) {
+	c.A = 0xff
+
+	if s[0] != '#' {
+		return c
+	}
+
+	hexToByte := func(b byte) byte {
+		switch {
+		case b >= '0' && b <= '9':
+			return b - '0'
+		case b >= 'a' && b <= 'f':
+			return b - 'a' + 10
+		case b >= 'A' && b <= 'F':
+			return b - 'A' + 10
+		}
+		return 0
+	}
+
+	switch len(s) {
+	case 7:
+		c.R = hexToByte(s[1])<<4 + hexToByte(s[2])
+		c.G = hexToByte(s[3])<<4 + hexToByte(s[4])
+		c.B = hexToByte(s[5])<<4 + hexToByte(s[6])
+	case 4:
+		c.R = hexToByte(s[1]) * 17
+		c.G = hexToByte(s[2]) * 17
+		c.B = hexToByte(s[3]) * 17
+	}
+	return
 }
