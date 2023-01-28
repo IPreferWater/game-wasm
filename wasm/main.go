@@ -20,8 +20,10 @@ import (
 )
 
 const (
-	screenWidth  = 512
-	screenHeight = 240
+	screenWidth          = 512
+	screenHeight         = 240
+	layoutCharacterWidth = 200
+	startLayoutC2        = 312
 
 	frameCount = 8
 
@@ -39,6 +41,8 @@ var (
 
 type Character struct {
 	audioCharacter AudioCharacter
+	notes          []Note
+	m              map[int]bla
 }
 
 type AudioCharacter struct {
@@ -49,9 +53,9 @@ type AudioCharacter struct {
 }
 
 type Game struct {
-	audioContext       *audio.Context
-	count              int
-	notesUpC1          []Note
+	audioContext *audio.Context
+	count        int
+	//notesUpC1          []Note
 	notesDownC2        []Note
 	notesToFadeAway    []NoteFadeAway
 	typing             bool
@@ -61,7 +65,7 @@ type Game struct {
 	character2         Character
 	phase              phase
 	currentPhaseStance PhaseStance
-	notesTyping        map[int]bla
+	//notesTyping        map[int]bla
 }
 
 type NoteFadeAway struct {
@@ -71,10 +75,18 @@ type NoteFadeAway struct {
 }
 
 type Note struct {
-	x    float32
-	y    float32
-	line int
+	x         float32
+	y         float32
+	line      int
+	direction direction
 }
+
+type direction int64
+
+const (
+	up direction = iota
+	down
+)
 
 func (g *Game) Update() error {
 
@@ -85,16 +97,63 @@ func (g *Game) Update() error {
 
 	g.count++
 
-	if g.currentPhaseStance == intro {
+	switch g.currentPhaseStance {
+	case intro:
 		if g.count >= g.phase.introFramesNbr {
-			g.currentPhaseStance = attackC1
+			g.currentPhaseStance = firstAttackC1
 			g.count = 0
 		}
-		return nil
+	case firstAttackC1:
+		if len(g.character1.m) >= 3 {
+			g.currentPhaseStance = defendC2
+			g.character2.m = g.character1.m
+			g.count = 0
+		}
+		checkAction(g)
+	case defendC2:
+		if val, ok := g.character2.m[g.count]; ok {
+			x := getPositionInLine(val.line, startLayoutC2)
+			g.character2.notes = append(g.character2.notes, Note{
+				x:         x,
+				y:         20,
+				line:      val.line,
+				direction: down,
+			})
+		}
+		checkAction(g)
+
+	default:
 	}
 
-	if g.currentPhaseStance == attackC1 {
-		if len(g.notesTyping) >= 3 {
+	for i := 0; i < len(g.character1.notes); i++ {
+		if g.character1.notes[i].direction == up {
+			g.character1.notes[i].y -= 1
+		} else {
+			g.character1.notes[i].y += 1
+		}
+
+		if g.character1.notes[i].y < 0+10 { // 20 as layout
+			g.character1.notes = append(g.character1.notes[:i], g.character1.notes[i+1:]...)
+			i--
+		}
+	}
+
+	//TODO factorize
+	for i := 0; i < len(g.character2.notes); i++ {
+		if g.character2.notes[i].direction == up {
+			g.character2.notes[i].y -= 1
+		} else {
+			g.character2.notes[i].y += 1
+		}
+
+		if g.character2.notes[i].y < 0+10 { // 20 as layout
+			g.character2.notes = append(g.character2.notes[:i], g.character2.notes[i+1:]...)
+			i--
+		}
+	}
+
+	/*if g.currentPhaseStance == attackC1 {
+		if len(g.character1.m) >= 3 {
 			g.currentPhaseStance = defendC1
 		}
 		checkAction(g)
@@ -106,9 +165,7 @@ func (g *Game) Update() error {
 				i--
 			}
 		}
-
-		return nil
-	}
+	}*/
 
 	// turn to defeat the notes
 	/*if secondUpdate {
@@ -126,7 +183,7 @@ func (g *Game) Update() error {
 		})
 	}*/
 
-	checkActionTaping(g)
+	/*checkActionTaping(g)
 	for i := 0; i < len(g.notesUpC1); i++ {
 		g.notesUpC1[i].y += 1
 	}
@@ -138,7 +195,7 @@ func (g *Game) Update() error {
 			g.notesToFadeAway = append(g.notesToFadeAway[:i], g.notesToFadeAway[i+1:]...)
 			i--
 		}
-	}
+	}*/
 
 	return nil
 }
@@ -178,8 +235,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DrawRect(screen, 2, 2, 30, 30, color.RGBA{200, 50, 150, 150})
 
 	//layouts
-	ebitenutil.DrawRect(screen, 2, 2, screenWidth/3, screenHeight*0.9, ParseHexColorFast("#0074D9"))
-	ebitenutil.DrawRect(screen, screenWidth-(screenWidth/3), 2, screenWidth/3, screenHeight*0.9, ParseHexColorFast("#d35400"))
+	ebitenutil.DrawRect(screen, 2, 2, layoutCharacterWidth, screenHeight*0.9, ParseHexColorFast("#0074D9"))
+	ebitenutil.DrawRect(screen, startLayoutC2, 2, layoutCharacterWidth, screenHeight*0.9, ParseHexColorFast("#d35400"))
 
 	ebitenutil.DrawLine(screen, 0, lineMiddleY, screenWidth, screenHeight-50, color.RGBA{200, 50, 150, 150})
 	ebitenutil.DrawLine(screen, 0, lineMiddleY-lineMiddleMargin, screenWidth, lineMiddleY-lineMiddleMargin, color.RGBA{100, 80, 150, 150})
@@ -192,19 +249,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	drawCharacter(dogSprites[Playing], g.count, screen, screenWidth/2, screenHeight/3)
 
-	for _, note := range g.notesUpC1 {
-		x := ((screenWidth/3)/4)*note.line + 20 // 20 as layout
-		if g.typing {
-			ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, color.RGBA{200, 50, 150, 150})
-		} else {
-			ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, color.NRGBA{250, 177, 160, 200})
-		}
+	if g.currentPhaseStance == firstAttackC1 || g.currentPhaseStance == attackC1 {
+
 	}
 
-	for _, note := range g.notesDownC2 {
+	for _, note := range g.character1.notes {
+		//x := ((screenWidth/3)/4)*note.line + 20 // 20 as layout
+		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#10ac84"))
+	}
+	for _, note := range g.character2.notes {
+
+		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#f368e0"))
+	}
+
+	/*for _, note := range g.notesDownC2 {
 		x := ((screenWidth-(screenWidth/3))/4)*note.line + 20 // 20 as layout
 		ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#192a56"))
-	}
+	}*/
 
 	for _, noteFadeAway := range g.notesToFadeAway {
 		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
@@ -272,18 +333,26 @@ func main() {
 	player2 := initPlayer1(audioCtx)
 
 	if err := ebiten.RunGame(&Game{
-		audioContext:       audioCtx,
-		count:              600,
-		notesUpC1:          []Note{},
-		notesToFadeAway:    []NoteFadeAway{},
-		typing:             false,
-		missed:             0,
-		score:              0,
-		character1:         Character{audioCharacter: player1},
-		character2:         Character{audioCharacter: player2},
+		audioContext: audioCtx,
+		count:        600,
+		//notesUpC1:       []Note{},
+		notesToFadeAway: []NoteFadeAway{},
+		typing:          false,
+		missed:          0,
+		score:           0,
+		character1: Character{
+			audioCharacter: player1,
+			notes:          []Note{},
+			m:              map[int]bla{},
+		},
+		character2: Character{
+			audioCharacter: player2,
+			notes:          []Note{},
+			m:              map[int]bla{},
+		},
 		phase:              phase{introFramesNbr: 700, firstTypingAttackFramesNbr: 300},
 		currentPhaseStance: intro,
-		notesTyping:        map[int]bla{},
+		//notesTyping:        map[int]bla{},
 	}); err != nil {
 		log.Fatal(err)
 	}

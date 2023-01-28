@@ -4,6 +4,7 @@ package main
 type PhaseStance int64
 const (
 	intro PhaseStance = iota
+	firstAttackC1
 	attackC1
 	defendC1
 	attackC2
