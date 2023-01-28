@@ -10,10 +10,10 @@ const (
 	attackC2
 	defendC2
 )
-type phase struct {
+/*type phase struct {
 	introFramesNbr int
 	firstTypingAttackFramesNbr int
-}
+}*/
 type bla struct {
 	line int
 }
