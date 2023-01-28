@@ -13,6 +13,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
+	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
 const (
@@ -30,6 +34,7 @@ const (
 var (
 	runnerImage *ebiten.Image
 	dogSprites  map[SpriteStance]Sprite
+	arcadeFont  font.Face
 )
 
 type Character struct {
@@ -44,14 +49,19 @@ type AudioCharacter struct {
 }
 
 type Game struct {
-	audioContext    *audio.Context
-	count           int
-	notes           []Note
-	notesToFadeAway []NoteFadeAway
-	typing          bool
-	missed          int
-	score           int
-	character1      Character
+	audioContext       *audio.Context
+	count              int
+	notesUpC1          []Note
+	notesDownC2        []Note
+	notesToFadeAway    []NoteFadeAway
+	typing             bool
+	missed             int
+	score              int
+	character1         Character
+	character2         Character
+	phase              phase
+	currentPhaseStance PhaseStance
+	notesTyping        map[int]bla
 }
 
 type NoteFadeAway struct {
@@ -75,15 +85,24 @@ func (g *Game) Update() error {
 
 	g.count++
 
-	// turn to play the notes
-	//TODO typing is not a good word
-	if g.typing {
-		checkAction(g)
-		for i := 0; i < len(g.notes); i++ {
-			g.notes[i].y -= 1
+	if g.currentPhaseStance == intro {
+		if g.count >= g.phase.introFramesNbr {
+			g.currentPhaseStance = attackC1
+			g.count = 0
+		}
+		return nil
+	}
 
-			if g.notes[i].y < 0+20 { // 20 as layout
-				g.notes = append(g.notes[:i], g.notes[i+1:]...)
+	if g.currentPhaseStance == attackC1 {
+		if len(g.notesTyping) >= 3 {
+			g.currentPhaseStance = defendC1
+		}
+		checkAction(g)
+		for i := 0; i < len(g.notesUpC1); i++ {
+			g.notesUpC1[i].y -= 1
+
+			if g.notesUpC1[i].y < 0+20 { // 20 as layout
+				g.notesUpC1 = append(g.notesUpC1[:i], g.notesUpC1[i+1:]...)
 				i--
 			}
 		}
@@ -99,17 +118,17 @@ func (g *Game) Update() error {
 			line: rand.Intn(4),
 		})
 	}*/
-	if val, ok := williamTellOverture[g.count]; ok {
+	/*if val, ok := williamTellOverture[g.count]; ok {
 		g.notes = append(g.notes, Note{
 			x:    0,
 			y:    20,
 			line: val.line,
 		})
-	}
+	}*/
 
 	checkActionTaping(g)
-	for i := 0; i < len(g.notes); i++ {
-		g.notes[i].y += 1
+	for i := 0; i < len(g.notesUpC1); i++ {
+		g.notesUpC1[i].y += 1
 	}
 
 	for i := 0; i < len(g.notesToFadeAway); i++ {
@@ -123,52 +142,72 @@ func (g *Game) Update() error {
 
 	return nil
 }
+func drawIntro(screen *ebiten.Image, g *Game) {
 
-func drawCharacter(sprite Sprite, frameCount int, screen *ebiten.Image) {
+	text.Draw(screen, "New Fight !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
+
+	if g.count > 200 {
+		drawCharacter(dogSprites[Playing], g.count, screen, screenWidth/2, screenHeight/4)
+	}
+
+	if g.count > 300 {
+		text.Draw(screen, "Versus", arcadeFont, screenWidth/2, screenHeight/2, color.White)
+	}
+
+	if g.count > 400 {
+		drawCharacter(dogSprites[Playing], g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
+	}
+}
+
+func drawCharacter(sprite Sprite, frameCount int, screen *ebiten.Image, x, y float64) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(-float64(sprite.width)/2, -float64(sprite.height)/2)
-	op.GeoM.Translate(screenWidth/2, screenHeight/2)
-	//i := (sprite.frameCount / 5) %
+	op.GeoM.Translate(x, y)
 
-	//sx, sy := sprite.width+i*frameWidth, frameOY
 	spriteIdx := int(frameCount/sprite.changeSpriteAfterFrames) % (sprite.numberOfSprites * 2)
 	if spriteIdx > sprite.numberOfSprites {
 		spriteIdx = (sprite.numberOfSprites * 2) - spriteIdx - 1
 	}
 
-	//fmt.Printf("x1 %d y1 %d x2 %d y2 %d\n",sprite.width*spriteNumber, 0,sprite.width*(spriteNumber+1), sprite.height)
-
-	//sx := (fff/sprite.width)%float64(sprite.spriteNumber)
 	x1 := sprite.width * spriteIdx
 	x2 := sprite.width * (spriteIdx + 1)
 	screen.DrawImage(runnerImage.SubImage(image.Rect(x1, sprite.yStar, x2, sprite.yStar+sprite.height)).(*ebiten.Image), op)
 }
+
 func (g *Game) Draw(screen *ebiten.Image) {
 
 	ebitenutil.DrawRect(screen, 2, 2, 30, 30, color.RGBA{200, 50, 150, 150})
 
 	//layouts
 	ebitenutil.DrawRect(screen, 2, 2, screenWidth/3, screenHeight*0.9, ParseHexColorFast("#0074D9"))
+	ebitenutil.DrawRect(screen, screenWidth-(screenWidth/3), 2, screenWidth/3, screenHeight*0.9, ParseHexColorFast("#d35400"))
+
 	ebitenutil.DrawLine(screen, 0, lineMiddleY, screenWidth, screenHeight-50, color.RGBA{200, 50, 150, 150})
 	ebitenutil.DrawLine(screen, 0, lineMiddleY-lineMiddleMargin, screenWidth, lineMiddleY-lineMiddleMargin, color.RGBA{100, 80, 150, 150})
 	ebitenutil.DrawLine(screen, 0, lineMiddleY+lineMiddleMargin, screenWidth, lineMiddleY+lineMiddleMargin, color.RGBA{220, 140, 90, 150})
 
-	drawCharacter(dogSprites[Playing], g.count, screen)
+	if g.currentPhaseStance == intro {
+		drawIntro(screen, g)
+		return
+	}
 
-	for _, note := range g.notes {
+	drawCharacter(dogSprites[Playing], g.count, screen, screenWidth/2, screenHeight/3)
+
+	for _, note := range g.notesUpC1 {
 		x := ((screenWidth/3)/4)*note.line + 20 // 20 as layout
 		if g.typing {
 			ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, color.RGBA{200, 50, 150, 150})
 		} else {
-
 			ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, color.NRGBA{250, 177, 160, 200})
 		}
+	}
 
+	for _, note := range g.notesDownC2 {
+		x := ((screenWidth-(screenWidth/3))/4)*note.line + 20 // 20 as layout
+		ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#192a56"))
 	}
 
 	for _, noteFadeAway := range g.notesToFadeAway {
 		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
-
 		ebitenutil.DrawRect(screen, float64(x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
 	}
 
@@ -205,6 +244,20 @@ func main() {
 		log.Fatal(err)
 	}
 
+	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const (
+		arcadeFontSize = 8
+		dpi            = 72
+	)
+	arcadeFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    arcadeFontSize,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
 
 	runnerImage = ebiten.NewImageFromImage(img)
 	dogSprites = initDogSprites()
@@ -214,27 +267,30 @@ func main() {
 
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
-	playWillTellOvertur(audioCtx)
+	//playWillTellOvertur(audioCtx)
 	player1 := initPlayer1(audioCtx)
+	player2 := initPlayer1(audioCtx)
 
 	if err := ebiten.RunGame(&Game{
-		audioContext:    audioCtx,
-		count:           frameCount,
-		notes:           []Note{},
-		notesToFadeAway: []NoteFadeAway{},
-		typing:          false,
-		missed:          0,
-		score:           0,
-		character1: Character{
-			audioCharacter: player1,
-		},
+		audioContext:       audioCtx,
+		count:              600,
+		notesUpC1:          []Note{},
+		notesToFadeAway:    []NoteFadeAway{},
+		typing:             false,
+		missed:             0,
+		score:              0,
+		character1:         Character{audioCharacter: player1},
+		character2:         Character{audioCharacter: player2},
+		phase:              phase{introFramesNbr: 700, firstTypingAttackFramesNbr: 300},
+		currentPhaseStance: intro,
+		notesTyping:        map[int]bla{},
 	}); err != nil {
 		log.Fatal(err)
 	}
 
 }
-func playWillTellOvertur(audioCtx *audio.Context){
-	p :=getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx)
+func playWillTellOvertur(audioCtx *audio.Context) {
+	p := getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx)
 	p.Play()
 }
 func initPlayer1(audioCtx *audio.Context) AudioCharacter {

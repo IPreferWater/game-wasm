@@ -22,7 +22,11 @@ func checkAction(g *Game) {
 	}
 	//key w = wait
 	if contains(keysPressed, ebiten.KeyQ) {
-		g.notes = append(g.notes, Note{
+		g.notesTyping[g.count] = bla{
+			line: 0,
+		}
+
+		g.notesUpC1 = append(g.notesUpC1, Note{
 			x:    0,
 			y:    screenHeight - 20,
 			line: 0,
@@ -30,7 +34,10 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyW) {
-		g.notes = append(g.notes, Note{
+		g.notesTyping[g.count] = bla{
+			line: 1,
+		}
+		g.notesUpC1 = append(g.notesUpC1, Note{
 			x:    0,
 			y:    screenHeight - 20,
 			line: 1,
@@ -38,7 +45,10 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyE) {
-		g.notes = append(g.notes, Note{
+		g.notesTyping[g.count] = bla{
+			line: 2,
+		}
+		g.notesUpC1 = append(g.notesUpC1, Note{
 			x:    0,
 			y:    screenHeight - 20,
 			line: 2,
@@ -46,7 +56,10 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyR) {
-		g.notes = append(g.notes, Note{
+		g.notesTyping[g.count] = bla{
+			line: 3,
+		}
+		g.notesUpC1 = append(g.notesUpC1, Note{
 			x:    0,
 			y:    screenHeight - 20,
 			line: 3,
@@ -55,7 +68,7 @@ func checkAction(g *Game) {
 }
 
 func checkIfNoteIsHit(g *Game, line int) {
-	for i, note := range g.notes {
+	for i, note := range g.notesUpC1 {
 		if note.line == line {
 			if note.y+noteSize > lineMiddleY && note.y < lineMiddleY {
 				g.notesToFadeAway = append(g.notesToFadeAway, NoteFadeAway{
@@ -64,7 +77,7 @@ func checkIfNoteIsHit(g *Game, line int) {
 					count:   100,
 				})
 
-				g.notes = append(g.notes[:i], g.notes[i+1:]...)
+				g.notesUpC1 = append(g.notesUpC1[:i], g.notesUpC1[i+1:]...)
 				g.score++
 
 				p := g.character1.audioCharacter
