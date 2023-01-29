@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/text"
 )
 
 func (g *Game) Draw(screen *ebiten.Image) {
@@ -27,25 +26,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	drawCharacter(dogSprites[Playing], g.count, screen, screenWidth/2, screenHeight/3)
-
-	if g.currentPhaseStance == firstAttackC1 || g.currentPhaseStance == attackC1 {
-
-	}
+	drawCharacter(g.character1.todoName, Playing, g.count, screen, screenWidth/2, screenHeight/3)
 
 	for _, note := range g.character1.notes {
-		//x := ((screenWidth/3)/4)*note.line + 20 // 20 as layout
 		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#10ac84"))
 	}
 	for _, note := range g.character2.notes {
 
 		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#f368e0"))
 	}
-
-	/*for _, note := range g.notesDownC2 {
-		x := ((screenWidth-(screenWidth/3))/4)*note.line + 20 // 20 as layout
-		ebitenutil.DrawRect(screen, float64(x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#192a56"))
-	}*/
 
 	for _, noteFadeAway := range g.notesToFadeAway {
 		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
@@ -55,14 +44,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// 40 widht
 	// 10 sprite
 	// tous les 50
-	if !g.typing {
+	/*if !g.typing {
 		t := (g.count / 20) % 20
 		if t > 9 {
 			t = 20 - t - 1
 		}
 		s := fmt.Sprintf("score : %d\nmissed : %d\n frame count : %d\n test : %d", g.score, g.missed, g.count, t)
 		ebitenutil.DebugPrint(screen, s)
-	}
+	}*/
 }
 
 func drawIntro(screen *ebiten.Image, g *Game) {
@@ -70,7 +59,9 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 	text.Draw(screen, "New Fight !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
 
 	if g.count > 200 {
-		drawCharacter(dogSprites[Playing], g.count, screen, screenWidth/2, screenHeight/4)
+		//TODO REVERSE
+		drawCharacter(g.character2.todoName,Lost, g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
+		
 	}
 
 	if g.count > 300 {
@@ -78,14 +69,15 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 	}
 
 	if g.count > 400 {
-		drawCharacter(dogSprites[Playing], g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
+		drawCharacter(g.character1.todoName,Playing, g.count, screen, screenWidth/2, screenHeight/4)
 	}
 }
 
-func drawCharacter(sprite Sprite, frameCount int, screen *ebiten.Image, x, y float64) {
+func drawCharacter(todoName TodoName, spriteStance SpriteStance, frameCount int, screen *ebiten.Image, x, y float64) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(x, y)
 
+	sprite := todoName.sprites[spriteStance]
 	spriteIdx := int(frameCount/sprite.changeSpriteAfterFrames) % (sprite.numberOfSprites * 2)
 	if spriteIdx > sprite.numberOfSprites {
 		spriteIdx = (sprite.numberOfSprites * 2) - spriteIdx - 1
@@ -93,5 +85,5 @@ func drawCharacter(sprite Sprite, frameCount int, screen *ebiten.Image, x, y flo
 
 	x1 := sprite.width * spriteIdx
 	x2 := sprite.width * (spriteIdx + 1)
-	screen.DrawImage(runnerImage.SubImage(image.Rect(x1, sprite.yStar, x2, sprite.yStar+sprite.height)).(*ebiten.Image), op)
+	screen.DrawImage(todoName.img.SubImage(image.Rect(x1, sprite.yStar, x2, sprite.yStar+sprite.height)).(*ebiten.Image), op)
 }

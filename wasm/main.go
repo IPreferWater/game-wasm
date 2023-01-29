@@ -18,12 +18,11 @@ import (
 )
 
 const (
-	screenWidth          = 512
-	screenHeight         = 240
+	screenWidth  = 512
+	screenHeight = 240
+	//area where we play
 	layoutCharacterWidth = 200
 	startLayoutC2        = 312
-
-	frameCount = 8
 
 	noteSize = 25
 
@@ -35,15 +34,24 @@ const (
 )
 
 var (
-	runnerImage *ebiten.Image
-	dogSprites  map[SpriteStance]Sprite
-	arcadeFont  font.Face
+	//dogImage      *ebiten.Image
+	//dogSprites    map[SpriteStance]Sprite
+	//knightImage   *ebiten.Image
+	//knightSprites map[SpriteStance]Sprite
+	arcadeFont    font.Face
 )
 
 type Character struct {
 	audioCharacter AudioCharacter
 	notes          []Note
-	m              map[int]bla
+	todoName       TodoName
+	// TODO map could be global for both players ?
+	m map[int]int
+}
+
+type TodoName struct {
+	img     *ebiten.Image
+	sprites map[SpriteStance]Sprite
 }
 
 type AudioCharacter struct {
@@ -54,16 +62,15 @@ type AudioCharacter struct {
 }
 
 type Game struct {
-	audioContext    *audio.Context
-	count           int
-	notesDownC2     []Note
+	audioContext *audio.Context
+	count        int
+	//TODO this should be for each players
 	notesToFadeAway []NoteFadeAway
-	typing          bool
 	missed          int
 	score           int
-	character1      Character
-	character2      Character
-	//phase              phase
+	//END TODO
+	character1         Character
+	character2         Character
 	currentPhaseStance PhaseStance
 }
 
@@ -110,34 +117,28 @@ func (g *Game) Update() error {
 		}
 		checkAction(g)
 	case defendC2:
-		if val, ok := g.character2.m[g.count]; ok {
-			x := getPositionInLine(val.line, startLayoutC2)
+		if line, ok := g.character2.m[g.count]; ok {
+			x := getPositionInLine(line, startLayoutC2)
 			g.character2.notes = append(g.character2.notes, Note{
 				x:         x,
 				y:         20,
-				line:      val.line,
+				line:      line,
 				direction: down,
 			})
 		}
-		//checkAction(g)
+		checkActionC2(g)
 
 	default:
 	}
 
-	updateNotes(g.character1.notes)
-	//updateNotes(g.character2.notes)
+	g.character1.updateNotes()
+	g.character2.updateNotes()
 
 	return nil
 }
 
-func remove(s []Note, i int) []Note {
-    s[i] = s[len(s)-1]
-    return s[:len(s)-1]
-}
-//TODO it's not working
-func updateNotes(notes []Note){
-	//var copyNote []Note
-	//copy(copyNote,notes)
+func (c *Character) updateNotes() {
+	notes := c.notes
 	for i := 0; i < len(notes); i++ {
 		//update position
 		if notes[i].direction == up {
@@ -147,18 +148,17 @@ func updateNotes(notes []Note){
 		}
 
 		// delete if out of scope
-		if notes[i].y < 0+10 || notes[i].y > screenHeight-10 { 
-			fmt.Printf("before : %v\n",notes)
-			/*if len(notes)<=0 {
-				notes = []Note{}
-				return
-			}*/
-			notes = remove(notes,i)
-			fmt.Printf("after : %v\n",notes)
-			//notes = append(notes[:i], notes[i+1:]...)
+		if notes[i].y < 0+10 || notes[i].y > screenHeight-10 {
+			notes = removeNoteAnyOrder(notes, i)
 			i--
 		}
 	}
+	c.notes = notes
+}
+
+func removeNoteAnyOrder(s []Note, i int) []Note {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -174,6 +174,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	dogImage := ebiten.NewImageFromImage(img)
+
+	imgKnight, _, err := ebitenutil.NewImageFromFile("./res/sprite_knight.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	knightImage := ebiten.NewImageFromImage(imgKnight)
 
 	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
 	if err != nil {
@@ -190,38 +197,42 @@ func main() {
 		Hinting: font.HintingFull,
 	})
 
-	runnerImage = ebiten.NewImageFromImage(img)
-	dogSprites = initDogSprites()
-	fmt.Println("allo?")
+	dogSprites := initDogSprites()
+	knightSprites := initKnightSprites()
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
-	ebiten.SetWindowTitle("Animation (Ebiten Demo)")
+	ebiten.SetWindowTitle("TODONAME")
 
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
 	//playWillTellOvertur(audioCtx)
-	player1 := initPlayer1(audioCtx)
-	player2 := initPlayer1(audioCtx)
+	audioPlayer1 := initPlayer1(audioCtx)
+	audioPlayer2 := initPlayer1(audioCtx)
 
 	if err := ebiten.RunGame(&Game{
-		audioContext: audioCtx,
-		count:        600,
-		//notesUpC1:       []Note{},
+		audioContext:    audioCtx,
+		count:           100,
 		notesToFadeAway: []NoteFadeAway{},
-		typing:          false,
 		missed:          0,
 		score:           0,
 		character1: Character{
-			audioCharacter: player1,
+			audioCharacter: audioPlayer1,
 			notes:          []Note{},
-			m:              map[int]bla{},
+			todoName:       TodoName{
+				img:     dogImage,
+				sprites: dogSprites,
+			},
+			m:              map[int]int{},
 		},
 		character2: Character{
-			audioCharacter: player2,
+			audioCharacter: audioPlayer2,
 			notes:          []Note{},
-			m:              map[int]bla{},
+			todoName:       TodoName{
+				img:     knightImage,
+				sprites: knightSprites,
+			},
+			m:              map[int]int{},
 		},
 		currentPhaseStance: intro,
-		//notesTyping:        map[int]bla{},
 	}); err != nil {
 		log.Fatal(err)
 	}
@@ -232,8 +243,6 @@ func playWillTellOvertur(audioCtx *audio.Context) {
 	p.Play()
 }
 func initPlayer1(audioCtx *audio.Context) AudioCharacter {
-	//sound TODO https://ebitengine.org/en/examples/audio.html
-
 	return AudioCharacter{
 		sound0: getPlayer("./res/bark_0.mp3", audioCtx),
 		sound1: getPlayer("./res/bark_1.mp3", audioCtx),

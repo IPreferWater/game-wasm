@@ -20,6 +20,29 @@ func getPositionInLine(line int,from int)float32{
 	return (layoutCharacterWidth/4)*float32(line) + float32(from) // 20 as layout
 }
 
+func checkActionC2(g *Game) {
+	keysPressed := inpututil.PressedKeys()
+	if len(keysPressed) == 0 {
+		return
+	}
+
+	if contains(keysPressed, ebiten.KeyJ) {
+		checkIfNoteIsHit(g, 0)
+	}
+
+	if contains(keysPressed, ebiten.KeyK) {
+		checkIfNoteIsHit(g, 1)
+	}
+
+	if contains(keysPressed, ebiten.KeyL) {
+		checkIfNoteIsHit(g, 2)
+	}
+
+	if contains(keysPressed, ebiten.KeyM) {
+		checkIfNoteIsHit(g, 3)
+	}
+}
+
 func checkAction(g *Game) {
 	keysPressed := inpututil.PressedKeys()
 	if len(keysPressed) == 0 {
@@ -27,9 +50,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyQ) {
-		g.character1.m[g.count] = bla{
-			line: 0,
-		}
+		g.character1.m[g.count] = 0
 
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(0,0),
@@ -40,9 +61,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyW) {
-		g.character1.m[g.count] = bla{
-			line: 1,
-		}
+		g.character1.m[g.count] = 1
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(1,0),
 			y:    screenHeight - 20,
@@ -52,9 +71,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyE) {
-		g.character1.m[g.count] = bla{
-			line: 2,
-		}
+		g.character1.m[g.count] = 2
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(2,0),
 			y:    screenHeight - 20,
@@ -64,9 +81,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyR) {
-		g.character1.m[g.count] = bla{
-			line: 3,
-		}
+		g.character1.m[g.count] = 3
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(3,0),
 			y:    screenHeight - 20,

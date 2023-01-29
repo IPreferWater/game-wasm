@@ -15,8 +15,6 @@ const (
 )
 
 func initDogSprites() map[SpriteStance]Sprite {
-
-	//m := make(map[Sp])
 	return map[SpriteStance]Sprite{
 		Playing: {
 			width:                   64,
@@ -33,5 +31,23 @@ func initDogSprites() map[SpriteStance]Sprite {
 			changeSpriteAfterFrames: 10,
 		},
 	}
+}
 
+func initKnightSprites() map[SpriteStance]Sprite {
+	return map[SpriteStance]Sprite{
+		Playing: {
+			width:                   56,
+			height:                  47,
+			yStar: 0,
+			numberOfSprites:         9,
+			changeSpriteAfterFrames: 10,
+		},
+		Lost: {
+			width:                   56,
+			height:                  47,
+			yStar: 49,
+			numberOfSprites:         3,
+			changeSpriteAfterFrames: 10,
+		},
+	}
 }
