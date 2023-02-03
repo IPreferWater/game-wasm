@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 
@@ -26,6 +27,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
+	if g.currentPhaseStance == addNoteC2 {
+		drawAddNote(screen, g)
+	}
+
 	drawCharacter(g.character1.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight/3)
 	drawCharacter(g.character2.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight-screenHeight/3)
 
@@ -42,10 +47,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	for _, noteFadeAway := range g.character2.notesToFadeAway {
-		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
-		ebitenutil.DrawRect(screen, float64(x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
+		ebitenutil.DrawRect(screen, float64(noteFadeAway.note.x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
 	}
 
+	s := fmt.Sprintf("frame count : %d\n mapNoteToPlay size : %d\n c1Notes : %v", g.count, len(g.mapNoteToPlay), g.character1.notes)
+	ebitenutil.DebugPrint(screen, s)
 	// 40 widht
 	// 10 sprite
 	// tous les 50
@@ -73,6 +79,11 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 	if g.count > 400 {
 		drawCharacter(g.character2.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
 	}
+}
+
+func drawAddNote(screen *ebiten.Image, g *Game) {
+
+	text.Draw(screen, "Add a note !!! !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
 }
 
 func drawCharacter(characterSprite CharacterSprite, spriteStance SpriteStance, frameCount int, screen *ebiten.Image, x, y float64) {

@@ -9,6 +9,8 @@ const (
 	defendC1
 	attackC2
 	defendC2
+	addNoteC2
+	addNoteC1
 )
 
 

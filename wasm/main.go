@@ -64,6 +64,7 @@ type Game struct {
 	character2         Character
 	currentPhaseStance PhaseStance
 	mapNoteToPlay map[int]int
+	notesDisplayed int
 }
 
 type NoteFadeAway struct {
@@ -108,16 +109,47 @@ func (g *Game) Update() error {
 		}
 		checkAction(g)
 	case defendC2:
-		if line, ok := g.mapNoteToPlay[g.count]; ok {
-			x := getPositionInLine(line, startLayoutC2)
-			g.character2.notes = append(g.character2.notes, Note{
-				x:         x,
-				y:         20,
-				line:      line,
-				direction: down,
-			})
+		
+		if g.notesDisplayed >= len (g.mapNoteToPlay) && len(g.character2.notes) <= 0 {
+			g.currentPhaseStance = addNoteC2
+			break
 		}
-		checkActionC2(g)
+			//DEFEND
+			if line, ok := g.mapNoteToPlay[g.count]; ok {
+				x := getPositionInLine(line, startLayoutC2)
+				g.character2.notes = append(g.character2.notes, Note{
+					x:         x,
+					y:         20,
+					line:      line,
+					direction: down,
+				})
+				g.notesDisplayed++
+			}
+			checkActionC2(g)
+		case addNoteC2:
+		if noteWasAdded(g,false) {
+			g.currentPhaseStance = defendC1
+			g.count =0
+			g.notesDisplayed=0
+		}
+	case defendC1:
+		if g.notesDisplayed >= len (g.mapNoteToPlay) && len(g.character1.notes) <= 0 {
+			g.currentPhaseStance = addNoteC1
+			break
+		}
+			//DEFEND
+			if line, ok := g.mapNoteToPlay[g.count]; ok {
+				x := getPositionInLine(line, 0)
+				g.character1.notes = append(g.character1.notes, Note{
+					x:         x,
+					y:         20,
+					line:      line,
+					direction: down,
+				})
+				g.notesDisplayed++
+			}
+			checkActionC1(g)
+		
 
 	default:
 	}
@@ -222,6 +254,7 @@ func main() {
 		},
 		currentPhaseStance: intro,
 		mapNoteToPlay : map[int]int{},
+		notesDisplayed: 0,
 	}); err != nil {
 		log.Fatal(err)
 	}

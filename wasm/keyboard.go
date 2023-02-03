@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -26,21 +28,96 @@ func checkActionC2(g *Game) {
 		return
 	}
 
+	if contains(keysPressed, ebiten.KeyH) {
+		checkIfNoteHit(g, g.character2, 0, false)
+	}
+
 	if contains(keysPressed, ebiten.KeyJ) {
-		checkIfNoteIsHit(g, 0)
+		checkIfNoteHit(g, g.character2, 1, false)
 	}
 
 	if contains(keysPressed, ebiten.KeyK) {
-		checkIfNoteIsHit(g, 1)
+		checkIfNoteHit(g, g.character2, 2, false)
 	}
 
 	if contains(keysPressed, ebiten.KeyL) {
-		checkIfNoteIsHit(g, 2)
+		checkIfNoteHit(g, g.character2, 3, false)
+	}
+}
+
+func checkActionC1(g *Game) {
+	keysPressed := inpututil.PressedKeys()
+	if len(keysPressed) == 0 {
+		return
 	}
 
-	if contains(keysPressed, ebiten.KeyM) {
-		checkIfNoteIsHit(g, 3)
+	if contains(keysPressed, ebiten.KeyQ) {
+		checkIfNoteHit(g, g.character1, 0, true)
 	}
+
+	if contains(keysPressed, ebiten.KeyW) {
+		checkIfNoteHit(g, g.character1, 1, true)
+	}
+
+	if contains(keysPressed, ebiten.KeyE) {
+		checkIfNoteHit(g, g.character1, 2, true)
+	}
+
+	if contains(keysPressed, ebiten.KeyR) {
+		checkIfNoteHit(g, g.character1, 3, true)
+	}
+}
+
+func noteWasAdded(g *Game, isC1 bool) bool{
+	keysPressed := inpututil.PressedKeys()
+	if len(keysPressed) == 0 {
+		return false
+	}
+	correctKeyPressed := false
+	if isC1 {
+		if contains(keysPressed, ebiten.KeyQ) {
+			g.mapNoteToPlay[g.count] = 0
+			correctKeyPressed=true
+		}
+	
+		if contains(keysPressed, ebiten.KeyW) {
+			g.mapNoteToPlay[g.count] = 1
+			correctKeyPressed=true
+		}
+	
+		if contains(keysPressed, ebiten.KeyE) {
+			g.mapNoteToPlay[g.count] = 2
+			correctKeyPressed=true
+		}
+	
+		if contains(keysPressed, ebiten.KeyR) {
+			g.mapNoteToPlay[g.count] = 3
+			correctKeyPressed=true
+		}
+		return correctKeyPressed
+	}
+	// it's c2
+
+	if contains(keysPressed, ebiten.KeyH) {
+		g.mapNoteToPlay[g.count] = 0
+			correctKeyPressed=true
+	}
+
+	if contains(keysPressed, ebiten.KeyJ) {
+		g.mapNoteToPlay[g.count] = 1
+			correctKeyPressed=true
+	}
+
+	if contains(keysPressed, ebiten.KeyK) {
+		g.mapNoteToPlay[g.count] = 2
+			correctKeyPressed=true
+	}
+
+	if contains(keysPressed, ebiten.KeyL) {
+		g.mapNoteToPlay[g.count] = 3
+			correctKeyPressed=true
+	}
+	return correctKeyPressed
 }
 
 func checkAction(g *Game) {
@@ -89,6 +166,44 @@ func checkAction(g *Game) {
 			direction: up,
 		})
 	}
+}
+
+func checkIfNoteHit(g *Game, c Character, line int, isC1 bool){
+
+	for i, note := range c.notes {
+		if note.line == line {
+			if note.y+noteSize > lineMiddleY && note.y < lineMiddleY {			
+				c.notes = append(c.notes[:i], c.notes[i+1:]...)		
+				fmt.Println(len(c.notes))	
+				c.notesToFadeAway = append(c.notesToFadeAway, NoteFadeAway{
+					note:    note,
+					success: true,
+					count:   100,
+				})
+
+				p := g.character1.audioCharacter
+				switch line {
+				case 0:
+					rewindAndPlay(p.sound0)
+				case 1:
+					rewindAndPlay(p.sound1)
+				case 2:
+					rewindAndPlay(p.sound2)
+				case 3:
+					rewindAndPlay(p.sound3)
+				}
+				break
+				//return
+			}
+		}
+	}
+
+	//TODO I think it's better to return the object character
+	if isC1 {
+		g.character1 = c
+		return
+	}
+	g.character2 = c
 }
 
 func checkIfNoteIsHit(g *Game, line int) {
