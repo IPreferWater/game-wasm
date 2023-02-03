@@ -26,17 +26,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	drawCharacter(g.character1.todoName, Playing, g.count, screen, screenWidth/2, screenHeight/3)
+	drawCharacter(g.character1.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight/3)
+	drawCharacter(g.character2.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight-screenHeight/3)
 
 	for _, note := range g.character1.notes {
 		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#10ac84"))
 	}
 	for _, note := range g.character2.notes {
-
 		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#f368e0"))
 	}
 
-	for _, noteFadeAway := range g.notesToFadeAway {
+	for _, noteFadeAway := range g.character1.notesToFadeAway {
+		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
+		ebitenutil.DrawRect(screen, float64(x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
+	}
+
+	for _, noteFadeAway := range g.character2.notesToFadeAway {
 		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
 		ebitenutil.DrawRect(screen, float64(x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
 	}
@@ -59,25 +64,22 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 	text.Draw(screen, "New Fight !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
 
 	if g.count > 200 {
-		//TODO REVERSE
-		drawCharacter(g.character2.todoName,Lost, g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
-		
+		drawCharacter(g.character1.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight/4)
 	}
 
 	if g.count > 300 {
 		text.Draw(screen, "Versus", arcadeFont, screenWidth/2, screenHeight/2, color.White)
 	}
-
 	if g.count > 400 {
-		drawCharacter(g.character1.todoName,Playing, g.count, screen, screenWidth/2, screenHeight/4)
+		drawCharacter(g.character2.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
 	}
 }
 
-func drawCharacter(todoName TodoName, spriteStance SpriteStance, frameCount int, screen *ebiten.Image, x, y float64) {
+func drawCharacter(characterSprite CharacterSprite, spriteStance SpriteStance, frameCount int, screen *ebiten.Image, x, y float64) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(x, y)
 
-	sprite := todoName.sprites[spriteStance]
+	sprite := characterSprite.sprites[spriteStance]
 	spriteIdx := int(frameCount/sprite.changeSpriteAfterFrames) % (sprite.numberOfSprites * 2)
 	if spriteIdx > sprite.numberOfSprites {
 		spriteIdx = (sprite.numberOfSprites * 2) - spriteIdx - 1
@@ -85,5 +87,5 @@ func drawCharacter(todoName TodoName, spriteStance SpriteStance, frameCount int,
 
 	x1 := sprite.width * spriteIdx
 	x2 := sprite.width * (spriteIdx + 1)
-	screen.DrawImage(todoName.img.SubImage(image.Rect(x1, sprite.yStar, x2, sprite.yStar+sprite.height)).(*ebiten.Image), op)
+	screen.DrawImage(characterSprite.img.SubImage(image.Rect(x1, sprite.yStar, x2, sprite.yStar+sprite.height)).(*ebiten.Image), op)
 }

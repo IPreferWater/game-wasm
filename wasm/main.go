@@ -34,22 +34,17 @@ const (
 )
 
 var (
-	//dogImage      *ebiten.Image
-	//dogSprites    map[SpriteStance]Sprite
-	//knightImage   *ebiten.Image
-	//knightSprites map[SpriteStance]Sprite
 	arcadeFont    font.Face
 )
 
 type Character struct {
 	audioCharacter AudioCharacter
 	notes          []Note
-	todoName       TodoName
-	// TODO map could be global for both players ?
-	m map[int]int
+	notesToFadeAway []NoteFadeAway
+	characterSprite       CharacterSprite
 }
 
-type TodoName struct {
+type CharacterSprite struct {
 	img     *ebiten.Image
 	sprites map[SpriteStance]Sprite
 }
@@ -64,14 +59,11 @@ type AudioCharacter struct {
 type Game struct {
 	audioContext *audio.Context
 	count        int
-	//TODO this should be for each players
-	notesToFadeAway []NoteFadeAway
-	missed          int
-	score           int
-	//END TODO
+	
 	character1         Character
 	character2         Character
 	currentPhaseStance PhaseStance
+	mapNoteToPlay map[int]int
 }
 
 type NoteFadeAway struct {
@@ -110,14 +102,13 @@ func (g *Game) Update() error {
 			g.count = 0
 		}
 	case firstAttackC1:
-		if len(g.character1.m) >= 3 {
+		if len(g.mapNoteToPlay) >= 3 {
 			g.currentPhaseStance = defendC2
-			g.character2.m = g.character1.m
 			g.count = 0
 		}
 		checkAction(g)
 	case defendC2:
-		if line, ok := g.character2.m[g.count]; ok {
+		if line, ok := g.mapNoteToPlay[g.count]; ok {
 			x := getPositionInLine(line, startLayoutC2)
 			g.character2.notes = append(g.character2.notes, Note{
 				x:         x,
@@ -210,29 +201,27 @@ func main() {
 
 	if err := ebiten.RunGame(&Game{
 		audioContext:    audioCtx,
-		count:           100,
-		notesToFadeAway: []NoteFadeAway{},
-		missed:          0,
-		score:           0,
+		count:           1000,
 		character1: Character{
 			audioCharacter: audioPlayer1,
 			notes:          []Note{},
-			todoName:       TodoName{
+			notesToFadeAway: []NoteFadeAway{},
+			characterSprite:       CharacterSprite{
 				img:     dogImage,
 				sprites: dogSprites,
 			},
-			m:              map[int]int{},
 		},
 		character2: Character{
 			audioCharacter: audioPlayer2,
 			notes:          []Note{},
-			todoName:       TodoName{
+			notesToFadeAway: []NoteFadeAway{},
+			characterSprite:       CharacterSprite{
 				img:     knightImage,
 				sprites: knightSprites,
 			},
-			m:              map[int]int{},
 		},
 		currentPhaseStance: intro,
+		mapNoteToPlay : map[int]int{},
 	}); err != nil {
 		log.Fatal(err)
 	}

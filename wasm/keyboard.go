@@ -50,7 +50,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyQ) {
-		g.character1.m[g.count] = 0
+		g.mapNoteToPlay[g.count] = 0
 
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(0,0),
@@ -61,7 +61,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyW) {
-		g.character1.m[g.count] = 1
+		g.mapNoteToPlay[g.count] = 1
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(1,0),
 			y:    screenHeight - 20,
@@ -71,7 +71,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyE) {
-		g.character1.m[g.count] = 2
+		g.mapNoteToPlay[g.count] = 2
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(2,0),
 			y:    screenHeight - 20,
@@ -81,7 +81,7 @@ func checkAction(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyR) {
-		g.character1.m[g.count] = 3
+		g.mapNoteToPlay[g.count] = 3
 		g.character1.notes = append(g.character1.notes, Note{
 			x:    getPositionInLine(3,0),
 			y:    screenHeight - 20,
@@ -95,14 +95,13 @@ func checkIfNoteIsHit(g *Game, line int) {
 	for i, note := range g.character1.notes {
 		if note.line == line {
 			if note.y+noteSize > lineMiddleY && note.y < lineMiddleY {
-				g.notesToFadeAway = append(g.notesToFadeAway, NoteFadeAway{
+				g.character1.notesToFadeAway = append(g.character1.notesToFadeAway, NoteFadeAway{
 					note:    note,
 					success: true,
 					count:   100,
 				})
 
 				g.character1.notes = append(g.character1.notes[:i], g.character1.notes[i+1:]...)
-				g.score++
 
 				p := g.character1.audioCharacter
 				switch line {
@@ -122,7 +121,6 @@ func checkIfNoteIsHit(g *Game, line int) {
 	}
 	p := g.audioContext.NewPlayerFromBytes([]byte{20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20})
 	p.Play()
-	g.missed++
 }
 
 func rewindAndPlay(p *audio.Player) {
