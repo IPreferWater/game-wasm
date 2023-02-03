@@ -21,3 +21,12 @@ func pop(s []int, i int) []int {
     ret = append(ret, s[:i]...)
     return append(ret, s[i+1:]...)
 }
+
+func TestPopLastItem(t *testing.T) {
+	arr := []int{0, 1}
+	
+	arr = append(arr[:1], arr[2:]...)		
+
+	arr = append(arr[:0], arr[1:]...)
+
+}

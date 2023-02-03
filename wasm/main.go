@@ -34,14 +34,14 @@ const (
 )
 
 var (
-	arcadeFont    font.Face
+	arcadeFont font.Face
 )
 
 type Character struct {
-	audioCharacter AudioCharacter
-	notes          []Note
+	audioCharacter  AudioCharacter
+	notes           []Note
 	notesToFadeAway []NoteFadeAway
-	characterSprite       CharacterSprite
+	characterSprite CharacterSprite
 }
 
 type CharacterSprite struct {
@@ -59,12 +59,12 @@ type AudioCharacter struct {
 type Game struct {
 	audioContext *audio.Context
 	count        int
-	
+
 	character1         Character
 	character2         Character
 	currentPhaseStance PhaseStance
-	mapNoteToPlay map[int]int
-	notesDisplayed int
+	mapNoteToPlay      map[int]int
+	notesDisplayed     int
 }
 
 type NoteFadeAway struct {
@@ -107,60 +107,71 @@ func (g *Game) Update() error {
 			g.currentPhaseStance = defendC2
 			g.count = 0
 		}
-		checkAction(g)
+		checkActionStartAttack(g)
 	case defendC2:
-		
-		if g.notesDisplayed >= len (g.mapNoteToPlay) && len(g.character2.notes) <= 0 {
+
+		if g.notesDisplayed >= len(g.mapNoteToPlay) && len(g.character2.notes) <= 0 {
 			g.currentPhaseStance = addNoteC2
 			break
 		}
-			//DEFEND
-			if line, ok := g.mapNoteToPlay[g.count]; ok {
-				x := getPositionInLine(line, startLayoutC2)
-				g.character2.notes = append(g.character2.notes, Note{
-					x:         x,
-					y:         20,
-					line:      line,
-					direction: down,
-				})
-				g.notesDisplayed++
-			}
-			checkActionC2(g)
-		case addNoteC2:
-		if noteWasAdded(g,false) {
+		//DEFEND
+		if line, ok := g.mapNoteToPlay[g.count]; ok {
+			x := getPositionInLine(line, startLayoutC2)
+			g.character2.notes = append(g.character2.notes, Note{
+				x:         x,
+				y:         20,
+				line:      line,
+				direction: down,
+			})
+			g.notesDisplayed++
+		}
+		checkActionC2(g)
+	case addNoteC2:
+		if noteWasAdded(g, false) {
 			g.currentPhaseStance = defendC1
-			g.count =0
-			g.notesDisplayed=0
+			g.count = 0
+			g.notesDisplayed = 0
 		}
 	case defendC1:
-		if g.notesDisplayed >= len (g.mapNoteToPlay) && len(g.character1.notes) <= 0 {
+		if g.notesDisplayed >= len(g.mapNoteToPlay) && len(g.character1.notes) <= 0 {
 			g.currentPhaseStance = addNoteC1
 			break
 		}
-			//DEFEND
-			if line, ok := g.mapNoteToPlay[g.count]; ok {
-				x := getPositionInLine(line, 0)
-				g.character1.notes = append(g.character1.notes, Note{
-					x:         x,
-					y:         20,
-					line:      line,
-					direction: down,
-				})
-				g.notesDisplayed++
-			}
-			checkActionC1(g)
-		
+		//DEFEND
+		if line, ok := g.mapNoteToPlay[g.count]; ok {
+			x := getPositionInLine(line, 0)
+			g.character1.notes = append(g.character1.notes, Note{
+				x:         x,
+				y:         20,
+				line:      line,
+				direction: down,
+			})
+			g.notesDisplayed++
+		}
+		checkActionC1(g)
+	case addNoteC1:
+		if noteWasAdded(g, true) {
+			g.currentPhaseStance = defendC2
+			g.count = 0
+			g.notesDisplayed = 0
+		}
+	case c1Lost, c2Lost:
+		return nil
 
 	default:
 	}
 
-	g.character1.updateNotes()
-	g.character2.updateNotes()
+	if g.character1.updateNotesAndCheckIfLost() {
+		g.currentPhaseStance = c1Lost
+	}
+	if g.character2.updateNotesAndCheckIfLost() {
+		g.currentPhaseStance = c2Lost
+	}
 
 	return nil
 }
 
-func (c *Character) updateNotes() {
+func (c *Character) updateNotesAndCheckIfLost() bool {
 	notes := c.notes
 	for i := 0; i < len(notes); i++ {
 		//update position
@@ -170,13 +181,26 @@ func (c *Character) updateNotes() {
 			notes[i].y += 1
 		}
 
-		// delete if out of scope
-		if notes[i].y < 0+10 || notes[i].y > screenHeight-10 {
+		// if out of scope, it's lost
+		if (notes[i].y < 0+10) || notes[i].y > screenHeight-10 {
+			if notes[i].direction == down{
+				return true
+			}
 			notes = removeNoteAnyOrder(notes, i)
 			i--
 		}
 	}
+
+	for i := 0; i < len(c.notesToFadeAway); i++ {
+		c.notesToFadeAway[i].count++
+		
+		if c.notesToFadeAway[i].count >= 100 {
+			c.notesToFadeAway = removeNoteToFadeAwayAnyOrder(c.notesToFadeAway, i)
+			i--
+		}
+	}
 	c.notes = notes
+	return false
 }
 
 func removeNoteAnyOrder(s []Note, i int) []Note {
@@ -184,6 +208,10 @@ func removeNoteAnyOrder(s []Note, i int) []Note {
 	return s[:len(s)-1]
 }
 
+func removeNoteToFadeAwayAnyOrder(s []NoteFadeAway, i int) []NoteFadeAway {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
+}
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
 }
@@ -227,34 +255,34 @@ func main() {
 
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
-	//playWillTellOvertur(audioCtx)
+	playWillTellOvertur(audioCtx)
 	audioPlayer1 := initPlayer1(audioCtx)
 	audioPlayer2 := initPlayer1(audioCtx)
 
 	if err := ebiten.RunGame(&Game{
-		audioContext:    audioCtx,
-		count:           1000,
+		audioContext: audioCtx,
+		count:        0,
 		character1: Character{
-			audioCharacter: audioPlayer1,
-			notes:          []Note{},
+			audioCharacter:  audioPlayer1,
+			notes:           []Note{},
 			notesToFadeAway: []NoteFadeAway{},
-			characterSprite:       CharacterSprite{
+			characterSprite: CharacterSprite{
 				img:     dogImage,
 				sprites: dogSprites,
 			},
 		},
 		character2: Character{
-			audioCharacter: audioPlayer2,
-			notes:          []Note{},
+			audioCharacter:  audioPlayer2,
+			notes:           []Note{},
 			notesToFadeAway: []NoteFadeAway{},
-			characterSprite:       CharacterSprite{
+			characterSprite: CharacterSprite{
 				img:     knightImage,
 				sprites: knightSprites,
 			},
 		},
 		currentPhaseStance: intro,
-		mapNoteToPlay : map[int]int{},
-		notesDisplayed: 0,
+		mapNoteToPlay:      map[int]int{},
+		notesDisplayed:     0,
 	}); err != nil {
 		log.Fatal(err)
 	}

@@ -18,7 +18,6 @@ func contains(keys []ebiten.Key, key ebiten.Key) bool {
 }
 
 func getPositionInLine(line int,from int)float32{
-	//((screenWidth/3)/4)*note.line + 20 // 20 as layout
 	return (layoutCharacterWidth/4)*float32(line) + float32(from) // 20 as layout
 }
 
@@ -69,6 +68,8 @@ func checkActionC1(g *Game) {
 }
 
 func noteWasAdded(g *Game, isC1 bool) bool{
+	// 180 is aprox the time a note reach the line
+	count := g.count-160
 	keysPressed := inpututil.PressedKeys()
 	if len(keysPressed) == 0 {
 		return false
@@ -76,22 +77,22 @@ func noteWasAdded(g *Game, isC1 bool) bool{
 	correctKeyPressed := false
 	if isC1 {
 		if contains(keysPressed, ebiten.KeyQ) {
-			g.mapNoteToPlay[g.count] = 0
+			g.mapNoteToPlay[count] = 0
 			correctKeyPressed=true
 		}
 	
 		if contains(keysPressed, ebiten.KeyW) {
-			g.mapNoteToPlay[g.count] = 1
+			g.mapNoteToPlay[count] = 1
 			correctKeyPressed=true
 		}
 	
 		if contains(keysPressed, ebiten.KeyE) {
-			g.mapNoteToPlay[g.count] = 2
+			g.mapNoteToPlay[count] = 2
 			correctKeyPressed=true
 		}
 	
 		if contains(keysPressed, ebiten.KeyR) {
-			g.mapNoteToPlay[g.count] = 3
+			g.mapNoteToPlay[count] = 3
 			correctKeyPressed=true
 		}
 		return correctKeyPressed
@@ -99,28 +100,28 @@ func noteWasAdded(g *Game, isC1 bool) bool{
 	// it's c2
 
 	if contains(keysPressed, ebiten.KeyH) {
-		g.mapNoteToPlay[g.count] = 0
+		g.mapNoteToPlay[count] = 0
 			correctKeyPressed=true
 	}
 
 	if contains(keysPressed, ebiten.KeyJ) {
-		g.mapNoteToPlay[g.count] = 1
+		g.mapNoteToPlay[count] = 1
 			correctKeyPressed=true
 	}
 
 	if contains(keysPressed, ebiten.KeyK) {
-		g.mapNoteToPlay[g.count] = 2
+		g.mapNoteToPlay[count] = 2
 			correctKeyPressed=true
 	}
 
 	if contains(keysPressed, ebiten.KeyL) {
-		g.mapNoteToPlay[g.count] = 3
+		g.mapNoteToPlay[count] = 3
 			correctKeyPressed=true
 	}
 	return correctKeyPressed
 }
 
-func checkAction(g *Game) {
+func checkActionStartAttack(g *Game) {
 	keysPressed := inpututil.PressedKeys()
 	if len(keysPressed) == 0 {
 		return
@@ -206,62 +207,7 @@ func checkIfNoteHit(g *Game, c Character, line int, isC1 bool){
 	g.character2 = c
 }
 
-func checkIfNoteIsHit(g *Game, line int) {
-	for i, note := range g.character1.notes {
-		if note.line == line {
-			if note.y+noteSize > lineMiddleY && note.y < lineMiddleY {
-				g.character1.notesToFadeAway = append(g.character1.notesToFadeAway, NoteFadeAway{
-					note:    note,
-					success: true,
-					count:   100,
-				})
-
-				g.character1.notes = append(g.character1.notes[:i], g.character1.notes[i+1:]...)
-
-				p := g.character1.audioCharacter
-				switch line {
-				case 0:
-					rewindAndPlay(p.sound0)
-				case 1:
-					rewindAndPlay(p.sound1)
-				case 2:
-					rewindAndPlay(p.sound2)
-				case 3:
-					rewindAndPlay(p.sound3)
-				}
-
-				return
-			}
-		}
-	}
-	p := g.audioContext.NewPlayerFromBytes([]byte{20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20})
-	p.Play()
-}
-
 func rewindAndPlay(p *audio.Player) {
 	p.Rewind()
 	p.Play()
-}
-
-func checkActionTaping(g *Game) {
-	keysPressed := inpututil.PressedKeys()
-	if len(keysPressed) == 0 {
-		return
-	}
-	//key w = wait
-	if contains(keysPressed, ebiten.KeyQ) {
-		checkIfNoteIsHit(g, 0)
-	}
-
-	if contains(keysPressed, ebiten.KeyW) {
-		checkIfNoteIsHit(g, 1)
-	}
-
-	if contains(keysPressed, ebiten.KeyE) {
-		checkIfNoteIsHit(g, 2)
-	}
-
-	if contains(keysPressed, ebiten.KeyR) {
-		checkIfNoteIsHit(g, 3)
-	}
 }

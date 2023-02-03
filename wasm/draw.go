@@ -27,7 +27,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	if g.currentPhaseStance == addNoteC2 {
+	if g.currentPhaseStance == c1Lost || g.currentPhaseStance == c2Lost {
+		drawLost(screen,g)
+		return
+	}
+
+	if g.currentPhaseStance == addNoteC2 || g.currentPhaseStance == addNoteC1 {
 		drawAddNote(screen, g)
 	}
 
@@ -42,12 +47,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	for _, noteFadeAway := range g.character1.notesToFadeAway {
-		x := ((screenWidth/3)/4)*noteFadeAway.note.line + 20 // 20 as layout
-		ebitenutil.DrawRect(screen, float64(x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
+		ebitenutil.DrawRect(screen, float64(noteFadeAway.note.x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(4)})
 	}
 
 	for _, noteFadeAway := range g.character2.notesToFadeAway {
-		ebitenutil.DrawRect(screen, float64(noteFadeAway.note.x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(noteFadeAway.count)})
+		ebitenutil.DrawRect(screen, float64(noteFadeAway.note.x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(6)})
 	}
 
 	s := fmt.Sprintf("frame count : %d\n mapNoteToPlay size : %d\n c1Notes : %v", g.count, len(g.mapNoteToPlay), g.character1.notes)
@@ -79,6 +83,23 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 	if g.count > 400 {
 		drawCharacter(g.character2.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
 	}
+}
+
+func drawLost(screen *ebiten.Image, g *Game) {
+
+	getWinnerLooser := func() (string, string) {
+		if g.currentPhaseStance == c1Lost {
+			drawCharacter(g.character1.characterSprite, Lost, g.count, screen, screenWidth/2, screenHeight/4)
+			drawCharacter(g.character2.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
+			return "2", "1"
+		}
+		drawCharacter(g.character1.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight/4)
+		drawCharacter(g.character2.characterSprite, Lost, g.count, screen, screenWidth/2, screenHeight-(screenHeight/3))
+		return "1", "2"
+	}
+	winner, looser := getWinnerLooser()
+	txt := fmt.Sprintf("Player %s win !\n Player %s is such a looser ...", winner, looser)
+	text.Draw(screen, txt, arcadeFont, screenWidth/2, screenHeight/4, color.White)
 }
 
 func drawAddNote(screen *ebiten.Image, g *Game) {
