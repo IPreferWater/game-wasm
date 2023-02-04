@@ -31,23 +31,32 @@ const (
 
 	introFramesNbr             = 700
 	firstTypingAttackFramesNbr = 300
+	coolDownFrameForSameNote   = 40
 )
 
 var (
 	arcadeFont font.Face
 )
 
-//TODO add const for specific player number
+// TODO add const for specific player number
 type Character struct {
 	audioCharacter  AudioCharacter
 	notes           []Note
 	notesToFadeAway []NoteFadeAway
 	characterSprite CharacterSprite
+	cooldown        Cooldown
 }
 
 type CharacterSprite struct {
 	img     *ebiten.Image
 	sprites map[SpriteStance]Sprite
+}
+
+type Cooldown struct {
+	line1 int
+	line2 int
+	line3 int
+	line4 int
 }
 
 type AudioCharacter struct {
@@ -108,7 +117,19 @@ func (g *Game) Update() error {
 			g.currentPhaseStance = defendC2
 			g.count = 0
 		}
-		checkActionStartAttack(g)
+		line := checkActionStartAttack(g)
+
+		if line <= -1 {
+			return nil
+		}
+
+		g.mapNoteToPlay[g.count] = line
+		g.character1.notes = append(g.character1.notes, Note{
+			x:         getPositionInLine(0, 0),
+			y:         screenHeight - 20,
+			line:      line,
+			direction: up,
+		})
 	case defendC2:
 
 		if g.notesDisplayed >= len(g.mapNoteToPlay) && len(g.character2.notes) <= 0 {
@@ -128,7 +149,13 @@ func (g *Game) Update() error {
 		}
 		checkActionC2(g)
 	case addNoteC2:
-		if noteWasAdded(g, false) {
+		lineToAddNote := getLineOfnoteAdded(g, false)
+		if lineToAddNote > -1 {
+
+			// 160 is aprox the time a note reach the line
+			count := g.count - 160
+			g.mapNoteToPlay[count] = lineToAddNote
+
 			g.currentPhaseStance = defendC1
 			g.count = 0
 			g.notesDisplayed = 0
@@ -151,7 +178,12 @@ func (g *Game) Update() error {
 		}
 		checkActionC1(g)
 	case addNoteC1:
-		if noteWasAdded(g, true) {
+		lineToAddNote := getLineOfnoteAdded(g, true)
+		if lineToAddNote > -1 {
+
+			count := g.count - 160
+			g.mapNoteToPlay[count] = lineToAddNote
+
 			g.currentPhaseStance = defendC2
 			g.count = 0
 			g.notesDisplayed = 0
@@ -184,7 +216,7 @@ func (c *Character) updateNotesAndCheckIfLost() bool {
 
 		// if out of scope, it's lost
 		if (notes[i].y < 0+10) || notes[i].y > screenHeight-10 {
-			if notes[i].direction == down{
+			if notes[i].direction == down {
 				return true
 			}
 			notes = removeNoteAnyOrder(notes, i)
@@ -194,7 +226,7 @@ func (c *Character) updateNotesAndCheckIfLost() bool {
 
 	for i := 0; i < len(c.notesToFadeAway); i++ {
 		c.notesToFadeAway[i].count++
-		
+
 		if c.notesToFadeAway[i].count >= 100 {
 			c.notesToFadeAway = removeNoteToFadeAwayAnyOrder(c.notesToFadeAway, i)
 			i--
@@ -271,6 +303,12 @@ func main() {
 				img:     dogImage,
 				sprites: dogSprites,
 			},
+			cooldown: Cooldown{
+				line1: 0,
+				line2: 0,
+				line3: 0,
+				line4: 0,
+			},
 		},
 		character2: Character{
 			audioCharacter:  audioPlayer2,
@@ -279,6 +317,12 @@ func main() {
 			characterSprite: CharacterSprite{
 				img:     knightImage,
 				sprites: knightSprites,
+			},
+			cooldown: Cooldown{
+				line1: 0,
+				line2: 0,
+				line3: 0,
+				line4: 0,
 			},
 		},
 		currentPhaseStance: intro,

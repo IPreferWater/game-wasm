@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -26,19 +28,19 @@ func checkActionC2(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyH) {
-		todoName(g,&g.character2,0,false)
+		todoName(g, &g.character2, 0, false)
 	}
 
 	if contains(keysPressed, ebiten.KeyJ) {
-		todoName(g,&g.character2,1,false)
+		todoName(g, &g.character2, 1, false)
 	}
 
 	if contains(keysPressed, ebiten.KeyK) {
-		todoName(g,&g.character2,2,false)
+		todoName(g, &g.character2, 2, false)
 	}
 
 	if contains(keysPressed, ebiten.KeyL) {
-		todoName(g,&g.character2,3,false)
+		todoName(g, &g.character2, 3, false)
 	}
 
 }
@@ -50,23 +52,22 @@ func checkActionC1(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyQ) {
-		todoName(g,&g.character1,0,true)
+		todoName(g, &g.character1, 0, true)
 	}
 
 	if contains(keysPressed, ebiten.KeyW) {
-		todoName(g,&g.character1,1,true)
+		todoName(g, &g.character1, 1, true)
 	}
 
 	if contains(keysPressed, ebiten.KeyE) {
-		todoName(g,&g.character1,2,true)
+		todoName(g, &g.character1, 2, true)
 	}
 
 	if contains(keysPressed, ebiten.KeyR) {
-		todoName(g,&g.character1,3,true)
+		todoName(g, &g.character1, 3, true)
 	}
 }
 
-//TODO try character with pointer
 func todoName(g *Game, character *Character, line int, isC1 bool) {
 	indexNoteHit := checkIfNoteHit(character.notes, line)
 
@@ -86,109 +87,106 @@ func todoName(g *Game, character *Character, line int, isC1 bool) {
 		count:   100,
 	})
 
+	setCoolDown(character, line, g.count)
 	rewindAndPlay(character.audioCharacter.sound0)
 }
 
-func noteWasAdded(g *Game, isC1 bool) bool {
-	// 180 is aprox the time a note reach the line
-	count := g.count - 160
-	keysPressed := inpututil.PressedKeys()
-	if len(keysPressed) == 0 {
-		return false
+func setCoolDown(c *Character, line int, frameCount int) {
+	switch line {
+	case 0:
+		c.cooldown.line1 = frameCount
+	case 1:
+		c.cooldown.line2 = frameCount
+	case 2:
+		c.cooldown.line3 = frameCount
+	case 3:
+		c.cooldown.line4 = frameCount
+	default:
+		panic(fmt.Sprintf("should have a line between 1 & 4 but got %d", line))
 	}
-	correctKeyPressed := false
-	if isC1 {
-		if contains(keysPressed, ebiten.KeyQ) {
-			g.mapNoteToPlay[count] = 0
-			correctKeyPressed = true
-		}
-
-		if contains(keysPressed, ebiten.KeyW) {
-			g.mapNoteToPlay[count] = 1
-			correctKeyPressed = true
-		}
-
-		if contains(keysPressed, ebiten.KeyE) {
-			g.mapNoteToPlay[count] = 2
-			correctKeyPressed = true
-		}
-
-		if contains(keysPressed, ebiten.KeyR) {
-			g.mapNoteToPlay[count] = 3
-			correctKeyPressed = true
-		}
-		return correctKeyPressed
-	}
-	// it's c2
-
-	if contains(keysPressed, ebiten.KeyH) {
-		g.mapNoteToPlay[count] = 0
-		correctKeyPressed = true
-	}
-
-	if contains(keysPressed, ebiten.KeyJ) {
-		g.mapNoteToPlay[count] = 1
-		correctKeyPressed = true
-	}
-
-	if contains(keysPressed, ebiten.KeyK) {
-		g.mapNoteToPlay[count] = 2
-		correctKeyPressed = true
-	}
-
-	if contains(keysPressed, ebiten.KeyL) {
-		g.mapNoteToPlay[count] = 3
-		correctKeyPressed = true
-	}
-	return correctKeyPressed
 }
 
-func checkActionStartAttack(g *Game) {
+func isLineNotInCoolDown(countFrame int, coolDown int) bool{
+if (countFrame - coolDown) < coolDownFrameForSameNote {
+	return false
+}
+return true
+}
+func getLineOfnoteAdded(g *Game, isC1 bool) int {
+	// 180 is aprox the time a note reach the line
+
 	keysPressed := inpututil.PressedKeys()
 	if len(keysPressed) == 0 {
-		return
+		return -1
 	}
 
-	if contains(keysPressed, ebiten.KeyQ) {
-		g.mapNoteToPlay[g.count] = 0
+	if isC1 {
+		cooldowns := g.character1.cooldown
+		if contains(keysPressed, ebiten.KeyQ) && isLineNotInCoolDown(g.count, cooldowns.line1) {
+			return 0
+		}
 
-		g.character1.notes = append(g.character1.notes, Note{
-			x:         getPositionInLine(0, 0),
-			y:         screenHeight - 20,
-			line:      0,
-			direction: up,
-		})
+		if contains(keysPressed, ebiten.KeyW) && isLineNotInCoolDown(g.count, cooldowns.line2){
+			return 1
+		}
+
+		if contains(keysPressed, ebiten.KeyE) && isLineNotInCoolDown(g.count, cooldowns.line3){
+			return 2
+		}
+
+		if contains(keysPressed, ebiten.KeyR) && isLineNotInCoolDown(g.count, cooldowns.line4){
+			return 3
+		}
+		return -1
+	}
+	// it's c2
+	cooldowns := g.character2.cooldown
+	if contains(keysPressed, ebiten.KeyH) && isLineNotInCoolDown(g.count, cooldowns.line1){
+		return 0
 	}
 
-	if contains(keysPressed, ebiten.KeyW) {
-		g.mapNoteToPlay[g.count] = 1
-		g.character1.notes = append(g.character1.notes, Note{
-			x:         getPositionInLine(1, 0),
-			y:         screenHeight - 20,
-			line:      1,
-			direction: up,
-		})
+	if contains(keysPressed, ebiten.KeyJ) && isLineNotInCoolDown(g.count, cooldowns.line2){
+		return 1
 	}
 
-	if contains(keysPressed, ebiten.KeyE) {
-		g.mapNoteToPlay[g.count] = 2
-		g.character1.notes = append(g.character1.notes, Note{
-			x:         getPositionInLine(2, 0),
-			y:         screenHeight - 20,
-			line:      2,
-			direction: up,
-		})
+	if contains(keysPressed, ebiten.KeyK) && isLineNotInCoolDown(g.count, cooldowns.line3){
+		return 2
 	}
 
-	if contains(keysPressed, ebiten.KeyR) {
-		g.mapNoteToPlay[g.count] = 3
-		g.character1.notes = append(g.character1.notes, Note{
-			x:         getPositionInLine(3, 0),
-			y:         screenHeight - 20,
-			line:      3,
-			direction: up,
-		})
+	if contains(keysPressed, ebiten.KeyL) && isLineNotInCoolDown(g.count, cooldowns.line4){
+		return 3
 	}
+	return -1
+}
+
+
+func checkActionStartAttack(g *Game) int {
+	keysPressed := inpututil.PressedKeys()
+	cooldowns := &g.character1.cooldown
+	if len(keysPressed) == 0 {
+		return -1
+	}
+
+	if contains(keysPressed, ebiten.KeyQ) && isLineNotInCoolDown(g.count, cooldowns.line1) {
+		cooldowns.line1 = g.count
+		return 0
+	}
+
+	if contains(keysPressed, ebiten.KeyW) && isLineNotInCoolDown(g.count, cooldowns.line2){
+		cooldowns.line2 = g.count
+		return 1
+	}
+
+	if contains(keysPressed, ebiten.KeyE)&& isLineNotInCoolDown(g.count, cooldowns.line3) {
+		cooldowns.line3 = g.count
+		return 2
+	}
+
+	if contains(keysPressed, ebiten.KeyR) && isLineNotInCoolDown(g.count, cooldowns.line4){
+		cooldowns.line4 = g.count
+		return 3
+	}
+	return -1
 }
 
 func checkIfNoteHit(notes []Note, line int) int {
