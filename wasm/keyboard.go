@@ -27,79 +27,18 @@ func checkActionC2(g *Game) {
 
 	if contains(keysPressed, ebiten.KeyH) {
 		todoName(g,&g.character2,0,false)
-		/*indexNoteHit := checkIfNoteHit(g.character2.notes, 0)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c2Lost
-			return
-		}
-
-		noteToRemove := g.character2.notes[indexNoteHit]
-		g.character2.notes = removeNoteAnyOrder(g.character2.notes, indexNoteHit)
-		g.character2.notesToFadeAway = append(g.character2.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character2.audioCharacter.sound0)*/
 	}
 
 	if contains(keysPressed, ebiten.KeyJ) {
-		indexNoteHit := checkIfNoteHit(g.character2.notes, 1)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c2Lost
-			return
-		}
-
-		noteToRemove := g.character2.notes[indexNoteHit]
-		g.character2.notes = removeNoteAnyOrder(g.character2.notes, indexNoteHit)
-		g.character2.notesToFadeAway = append(g.character2.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character2.audioCharacter.sound0)
+		todoName(g,&g.character2,1,false)
 	}
 
 	if contains(keysPressed, ebiten.KeyK) {
-		indexNoteHit := checkIfNoteHit(g.character2.notes, 2)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c2Lost
-			return
-		}
-
-		noteToRemove := g.character2.notes[indexNoteHit]
-		g.character2.notes = removeNoteAnyOrder(g.character2.notes, indexNoteHit)
-		g.character2.notesToFadeAway = append(g.character2.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character2.audioCharacter.sound0)
+		todoName(g,&g.character2,2,false)
 	}
 
 	if contains(keysPressed, ebiten.KeyL) {
-		indexNoteHit := checkIfNoteHit(g.character2.notes, 3)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c2Lost
-			return
-		}
-
-		noteToRemove := g.character2.notes[indexNoteHit]
-		g.character2.notes = removeNoteAnyOrder(g.character2.notes, indexNoteHit)
-		g.character2.notesToFadeAway = append(g.character2.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character2.audioCharacter.sound0)
+		todoName(g,&g.character2,3,false)
 	}
 
 }
@@ -111,79 +50,19 @@ func checkActionC1(g *Game) {
 	}
 
 	if contains(keysPressed, ebiten.KeyQ) {
-		indexNoteHit := checkIfNoteHit(g.character1.notes, 0)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c1Lost
-			return
-		}
-
-		noteToRemove := g.character1.notes[indexNoteHit]
-		g.character1.notes = removeNoteAnyOrder(g.character1.notes, indexNoteHit)
-		g.character1.notesToFadeAway = append(g.character1.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character1.audioCharacter.sound0)
+		todoName(g,&g.character1,0,true)
 	}
 
 	if contains(keysPressed, ebiten.KeyW) {
-		indexNoteHit := checkIfNoteHit(g.character1.notes, 1)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c1Lost
-			return
-		}
-
-		noteToRemove := g.character1.notes[indexNoteHit]
-		g.character1.notes = removeNoteAnyOrder(g.character1.notes, indexNoteHit)
-		g.character1.notesToFadeAway = append(g.character1.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character1.audioCharacter.sound0)
+		todoName(g,&g.character1,1,true)
 	}
 
 	if contains(keysPressed, ebiten.KeyE) {
-		indexNoteHit := checkIfNoteHit(g.character1.notes, 2)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c1Lost
-			return
-		}
-
-		noteToRemove := g.character1.notes[indexNoteHit]
-		g.character1.notes = removeNoteAnyOrder(g.character1.notes, indexNoteHit)
-		g.character1.notesToFadeAway = append(g.character1.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character1.audioCharacter.sound0)
+		todoName(g,&g.character1,2,true)
 	}
 
 	if contains(keysPressed, ebiten.KeyR) {
-		indexNoteHit := checkIfNoteHit(g.character1.notes, 3)
-
-		if indexNoteHit == -1 {
-			g.currentPhaseStance = c1Lost
-			return
-		}
-
-		noteToRemove := g.character1.notes[indexNoteHit]
-		g.character1.notes = removeNoteAnyOrder(g.character1.notes, indexNoteHit)
-		g.character1.notesToFadeAway = append(g.character1.notesToFadeAway, NoteFadeAway{
-			note:    noteToRemove,
-			success: true,
-			count:   100,
-		})
-
-		rewindAndPlay(g.character1.audioCharacter.sound0)
+		todoName(g,&g.character1,3,true)
 	}
 }
 
@@ -194,7 +73,7 @@ func todoName(g *Game, character *Character, line int, isC1 bool) {
 	if indexNoteHit == -1 && isC1 {
 		g.currentPhaseStance = c1Lost
 		return
-	} else if indexNoteHit == -1 && isC1 {
+	} else if indexNoteHit == -1 && !isC1 {
 		g.currentPhaseStance = c2Lost
 		return
 	}
@@ -322,13 +201,6 @@ func checkIfNoteHit(notes []Note, line int) int {
 		}
 	}
 	return -1
-
-	//TODO I think it's better to return the object character
-	/*if isC1 {
-		g.character1 = c
-		return
-	}
-	g.character2 = c*/
 }
 
 func rewindAndPlay(p *audio.Player) {
