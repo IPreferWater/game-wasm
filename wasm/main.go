@@ -37,6 +37,7 @@ var (
 	arcadeFont font.Face
 )
 
+//TODO add const for specific player number
 type Character struct {
 	audioCharacter  AudioCharacter
 	notes           []Note
@@ -255,13 +256,13 @@ func main() {
 
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
-	playWillTellOvertur(audioCtx)
+	//playWillTellOvertur(audioCtx)
 	audioPlayer1 := initPlayer1(audioCtx)
 	audioPlayer2 := initPlayer1(audioCtx)
 
 	if err := ebiten.RunGame(&Game{
 		audioContext: audioCtx,
-		count:        0,
+		count:        700,
 		character1: Character{
 			audioCharacter:  audioPlayer1,
 			notes:           []Note{},
