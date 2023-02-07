@@ -159,6 +159,17 @@ func getLineOfnoteAdded(g *Game, isC1 bool) int {
 	return -1
 }
 
+func checkActionResetGame(g *Game) bool{
+	keysPressed := inpututil.PressedKeys()
+	if len(keysPressed) == 0 {
+		return false
+	}
+
+	if contains(keysPressed, ebiten.KeySpace){
+		return true
+	}
+	return false
+}
 
 func checkActionStartAttack(g *Game) int {
 	keysPressed := inpututil.PressedKeys()

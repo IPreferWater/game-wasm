@@ -5,5 +5,5 @@ TODO :
 ✔️ add a cooldown on the same line
 - stop the musique when someone lost
 
-- touch space to play again
+✔️ touch space to play again
 - add specifics sounds for the knight

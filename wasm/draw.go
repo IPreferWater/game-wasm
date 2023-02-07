@@ -55,7 +55,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	//s := fmt.Sprintf("frame count : %d\n mapNoteToPlay size : %d\n c1Notes : %v", g.count, len(g.mapNoteToPlay), g.character1.notes)
-	//ebitenutil.DebugPrint(screen, s)
+	s := fmt.Sprintf("frame count : %d\n currentPhaseStance : %d\n", g.count, g.currentPhaseStance)
+	ebitenutil.DebugPrint(screen, s)
 	// 40 widht
 	// 10 sprite
 	// tous les 50
@@ -100,6 +101,9 @@ func drawLost(screen *ebiten.Image, g *Game) {
 	winner, looser := getWinnerLooser()
 	txt := fmt.Sprintf("Player %s win !\n Player %s is such a looser ...", winner, looser)
 	text.Draw(screen, txt, arcadeFont, screenWidth/2, screenHeight/4, color.White)
+
+	txtReplay := fmt.Sprintf("Tape space to replay")
+	text.Draw(screen, txtReplay, arcadeFont, screenWidth/2, screenHeight/2, color.White)
 }
 
 func drawAddNote(screen *ebiten.Image, g *Game) {

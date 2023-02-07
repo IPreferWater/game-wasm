@@ -183,6 +183,22 @@ func (g *Game) Update() error {
 			g.notesDisplayed = 0
 		}
 	case c1Lost, c2Lost:
+		// stop musique
+		// replay
+		if checkActionResetGame(g) {
+			g.count = 0
+			g.currentPhaseStance = firstAttackC1
+			g.mapNoteToPlay = make(map[int]int)
+			g.character1.notes = []Note{}
+			g.character2.notes = []Note{}
+			g.character1.cooldown = Cooldown{
+				line1: -coolDownFrameForSameNote,
+				line2: -coolDownFrameForSameNote,
+				line3: -coolDownFrameForSameNote,
+				line4: -coolDownFrameForSameNote,
+			}
+			g.notesDisplayed = 0
+		}
 		return nil
 
 	default:
