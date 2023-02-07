@@ -75,6 +75,7 @@ type Game struct {
 	currentPhaseStance PhaseStance
 	mapNoteToPlay      map[int]int
 	notesDisplayed     int
+	williamTellPlayer  *audio.Player
 }
 
 type NoteFadeAway struct {
@@ -103,11 +104,16 @@ func (g *Game) Update() error {
 
 	switch g.currentPhaseStance {
 	case intro:
+		g.williamTellPlayer.Play()
 		if g.count >= introFramesNbr {
 			g.currentPhaseStance = firstAttackC1
 			g.count = 0
 		}
 	case firstAttackC1:
+		if !g.williamTellPlayer.IsPlaying(){
+			g.williamTellPlayer.Rewind()	
+			g.williamTellPlayer.Play()
+		}
 		if len(g.mapNoteToPlay) >= 3 {
 			g.currentPhaseStance = defendC2
 			g.count = 0
@@ -184,6 +190,9 @@ func (g *Game) Update() error {
 		}
 	case c1Lost, c2Lost:
 		// stop musique
+		if g.williamTellPlayer.IsPlaying(){
+			g.williamTellPlayer.Pause()
+		}
 		// replay
 		if checkActionResetGame(g) {
 			g.count = 0
@@ -338,15 +347,17 @@ func main() {
 		currentPhaseStance: intro,
 		mapNoteToPlay:      map[int]int{},
 		notesDisplayed:     0,
+		williamTellPlayer: getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx),
 	}); err != nil {
 		log.Fatal(err)
 	}
 
 }
-func playWillTellOvertur(audioCtx *audio.Context) {
+/*func playWillTellOvertur(audioCtx *audio.Context) {
 	p := getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx)
 	p.Play()
-}
+	p.
+}*/
 func initPlayer1(audioCtx *audio.Context) AudioCharacter {
 	return AudioCharacter{
 		sound0: getPlayer("./res/bark_0.mp3", audioCtx),
