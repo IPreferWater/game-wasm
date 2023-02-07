@@ -99,11 +99,6 @@ const (
 
 func (g *Game) Update() error {
 
-	/*secondUpdate := false
-	if g.count%20 == 0 {
-		secondUpdate = true
-	}*/
-
 	g.count++
 
 	switch g.currentPhaseStance {
@@ -118,14 +113,13 @@ func (g *Game) Update() error {
 			g.count = 0
 		}
 		line := checkActionStartAttack(g)
-
 		if line <= -1 {
-			return nil
+			break
 		}
 
 		g.mapNoteToPlay[g.count] = line
 		g.character1.notes = append(g.character1.notes, Note{
-			x:         getPositionInLine(0, 0),
+			x:         getPositionInLine(line, 0),
 			y:         screenHeight - 20,
 			line:      line,
 			direction: up,
@@ -304,10 +298,10 @@ func main() {
 				sprites: dogSprites,
 			},
 			cooldown: Cooldown{
-				line1: 0,
-				line2: 0,
-				line3: 0,
-				line4: 0,
+				line1: -coolDownFrameForSameNote,
+				line2: -coolDownFrameForSameNote,
+				line3: -coolDownFrameForSameNote,
+				line4: -coolDownFrameForSameNote,
 			},
 		},
 		character2: Character{
