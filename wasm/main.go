@@ -36,6 +36,8 @@ const (
 
 var (
 	arcadeFont font.Face
+	c1Back     *ebiten.Image
+	c2Back     *ebiten.Image
 )
 
 // TODO add const for specific player number
@@ -104,16 +106,16 @@ func (g *Game) Update() error {
 
 	switch g.currentPhaseStance {
 	case intro:
-		g.williamTellPlayer.Play()
+		//g.williamTellPlayer.Play()
 		if g.count >= introFramesNbr {
 			g.currentPhaseStance = firstAttackC1
 			g.count = 0
 		}
 	case firstAttackC1:
-		if !g.williamTellPlayer.IsPlaying(){
-			g.williamTellPlayer.Rewind()	
+		/*if !g.williamTellPlayer.IsPlaying() {
+			g.williamTellPlayer.Rewind()
 			g.williamTellPlayer.Play()
-		}
+		}*/
 		if len(g.mapNoteToPlay) >= 3 {
 			g.currentPhaseStance = defendC2
 			g.count = 0
@@ -190,7 +192,7 @@ func (g *Game) Update() error {
 		}
 	case c1Lost, c2Lost:
 		// stop musique
-		if g.williamTellPlayer.IsPlaying(){
+		if g.williamTellPlayer.IsPlaying() {
 			g.williamTellPlayer.Pause()
 		}
 		// replay
@@ -285,6 +287,12 @@ func main() {
 	}
 	knightImage := ebiten.NewImageFromImage(imgKnight)
 
+	imgC1Back,_,err := ebitenutil.NewImageFromFile("./res/dog/back.png")
+	c1Back = imgC1Back
+
+	imgC2Back,_,err := ebitenutil.NewImageFromFile("./res/knight/back.png")
+	c2Back = imgC2Back
+
 	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
 	if err != nil {
 		log.Fatal(err)
@@ -308,8 +316,8 @@ func main() {
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
 	//playWillTellOvertur(audioCtx)
-	audioPlayer1 := initPlayer1(audioCtx)
-	audioPlayer2 := initPlayer1(audioCtx)
+	audioPlayer1 := initAudioCharacter(audioCtx, "dog")
+	audioPlayer2 := initAudioCharacter(audioCtx, "knight")
 
 	if err := ebiten.RunGame(&Game{
 		audioContext: audioCtx,
@@ -347,23 +355,26 @@ func main() {
 		currentPhaseStance: intro,
 		mapNoteToPlay:      map[int]int{},
 		notesDisplayed:     0,
-		williamTellPlayer: getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx),
+		williamTellPlayer:  getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx),
 	}); err != nil {
 		log.Fatal(err)
 	}
 
 }
-/*func playWillTellOvertur(audioCtx *audio.Context) {
-	p := getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx)
-	p.Play()
-	p.
-}*/
-func initPlayer1(audioCtx *audio.Context) AudioCharacter {
+
+func initAudioCharacter(audioCtx *audio.Context, folderName string) AudioCharacter {
+	mapPath := make(map[int]string)
+
+	for i := 0; i <= 3; i++ {
+		path := fmt.Sprintf("./res/%s/sound_%d.mp3", folderName, i)
+		mapPath[i] = path
+	}
+
 	return AudioCharacter{
-		sound0: getPlayer("./res/bark_0.mp3", audioCtx),
-		sound1: getPlayer("./res/bark_1.mp3", audioCtx),
-		sound2: getPlayer("./res/bark_2.mp3", audioCtx),
-		sound3: getPlayer("./res/bark_3.mp3", audioCtx),
+		sound0: getPlayer(mapPath[0], audioCtx),
+		sound1: getPlayer(mapPath[1], audioCtx),
+		sound2: getPlayer(mapPath[2], audioCtx),
+		sound3: getPlayer(mapPath[3], audioCtx),
 	}
 }
 

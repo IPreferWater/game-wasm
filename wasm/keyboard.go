@@ -88,7 +88,18 @@ func todoName(g *Game, character *Character, line int, isC1 bool) {
 	})
 
 	setCoolDown(character, line, g.count)
-	rewindAndPlay(character.audioCharacter.sound0)
+	//TODO it would be better to keep the sounds in a map
+	switch line {
+	case 0:
+    	rewindAndPlay(character.audioCharacter.sound0)
+    case 1:
+        rewindAndPlay(character.audioCharacter.sound1)
+    case 2:
+        rewindAndPlay(character.audioCharacter.sound2)
+    case 3:
+        rewindAndPlay(character.audioCharacter.sound3)
+    }
+	
 }
 
 func setCoolDown(c *Character, line int, frameCount int) {
