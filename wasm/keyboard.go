@@ -87,19 +87,19 @@ func todoName(g *Game, character *Character, line int, isC1 bool) {
 		count:   100,
 	})
 
-	setCoolDown(character, line, g.count)
+	setCoolDown(character, line, g.frameCount)
 	//TODO it would be better to keep the sounds in a map
 	switch line {
 	case 0:
-    	rewindAndPlay(character.audioCharacter.sound0)
-    case 1:
-        rewindAndPlay(character.audioCharacter.sound1)
-    case 2:
-        rewindAndPlay(character.audioCharacter.sound2)
-    case 3:
-        rewindAndPlay(character.audioCharacter.sound3)
-    }
-	
+		rewindAndPlay(character.audioCharacter.sound0)
+	case 1:
+		rewindAndPlay(character.audioCharacter.sound1)
+	case 2:
+		rewindAndPlay(character.audioCharacter.sound2)
+	case 3:
+		rewindAndPlay(character.audioCharacter.sound3)
+	}
+
 }
 
 func setCoolDown(c *Character, line int, frameCount int) {
@@ -117,11 +117,11 @@ func setCoolDown(c *Character, line int, frameCount int) {
 	}
 }
 
-func isLineNotInCoolDown(countFrame int, coolDown int) bool{
-if (countFrame - coolDown) < coolDownFrameForSameNote {
-	return false
-}
-return true
+func isLineNotInCoolDown(countFrame int, coolDown int) bool {
+	if (countFrame - coolDown) < coolDownFrameForSameNote {
+		return false
+	}
+	return true
 }
 func getLineOfnoteAdded(g *Game, isC1 bool) int {
 	// 180 is aprox the time a note reach the line
@@ -133,50 +133,50 @@ func getLineOfnoteAdded(g *Game, isC1 bool) int {
 
 	if isC1 {
 		cooldowns := g.character1.cooldown
-		if contains(keysPressed, ebiten.KeyQ) && isLineNotInCoolDown(g.count, cooldowns.line1) {
+		if contains(keysPressed, ebiten.KeyQ) && isLineNotInCoolDown(g.frameCount, cooldowns.line1) {
 			return 0
 		}
 
-		if contains(keysPressed, ebiten.KeyW) && isLineNotInCoolDown(g.count, cooldowns.line2){
+		if contains(keysPressed, ebiten.KeyW) && isLineNotInCoolDown(g.frameCount, cooldowns.line2) {
 			return 1
 		}
 
-		if contains(keysPressed, ebiten.KeyE) && isLineNotInCoolDown(g.count, cooldowns.line3){
+		if contains(keysPressed, ebiten.KeyE) && isLineNotInCoolDown(g.frameCount, cooldowns.line3) {
 			return 2
 		}
 
-		if contains(keysPressed, ebiten.KeyR) && isLineNotInCoolDown(g.count, cooldowns.line4){
+		if contains(keysPressed, ebiten.KeyR) && isLineNotInCoolDown(g.frameCount, cooldowns.line4) {
 			return 3
 		}
 		return -1
 	}
 	// it's c2
 	cooldowns := g.character2.cooldown
-	if contains(keysPressed, ebiten.KeyH) && isLineNotInCoolDown(g.count, cooldowns.line1){
+	if contains(keysPressed, ebiten.KeyH) && isLineNotInCoolDown(g.frameCount, cooldowns.line1) {
 		return 0
 	}
 
-	if contains(keysPressed, ebiten.KeyJ) && isLineNotInCoolDown(g.count, cooldowns.line2){
+	if contains(keysPressed, ebiten.KeyJ) && isLineNotInCoolDown(g.frameCount, cooldowns.line2) {
 		return 1
 	}
 
-	if contains(keysPressed, ebiten.KeyK) && isLineNotInCoolDown(g.count, cooldowns.line3){
+	if contains(keysPressed, ebiten.KeyK) && isLineNotInCoolDown(g.frameCount, cooldowns.line3) {
 		return 2
 	}
 
-	if contains(keysPressed, ebiten.KeyL) && isLineNotInCoolDown(g.count, cooldowns.line4){
+	if contains(keysPressed, ebiten.KeyL) && isLineNotInCoolDown(g.frameCount, cooldowns.line4) {
 		return 3
 	}
 	return -1
 }
 
-func checkActionResetGame(g *Game) bool{
+func checkActionResetGame(g *Game) bool {
 	keysPressed := inpututil.PressedKeys()
 	if len(keysPressed) == 0 {
 		return false
 	}
 
-	if contains(keysPressed, ebiten.KeySpace){
+	if contains(keysPressed, ebiten.KeySpace) {
 		return true
 	}
 	return false
@@ -189,23 +189,23 @@ func checkActionStartAttack(g *Game) int {
 		return -1
 	}
 
-	if contains(keysPressed, ebiten.KeyQ) && isLineNotInCoolDown(g.count, cooldowns.line1) {
-		cooldowns.line1 = g.count
+	if contains(keysPressed, ebiten.KeyQ) && isLineNotInCoolDown(g.frameCount, cooldowns.line1) {
+		cooldowns.line1 = g.frameCount
 		return 0
 	}
 
-	if contains(keysPressed, ebiten.KeyW) && isLineNotInCoolDown(g.count, cooldowns.line2){
-		cooldowns.line2 = g.count
+	if contains(keysPressed, ebiten.KeyW) && isLineNotInCoolDown(g.frameCount, cooldowns.line2) {
+		cooldowns.line2 = g.frameCount
 		return 1
 	}
 
-	if contains(keysPressed, ebiten.KeyE)&& isLineNotInCoolDown(g.count, cooldowns.line3) {
-		cooldowns.line3 = g.count
+	if contains(keysPressed, ebiten.KeyE) && isLineNotInCoolDown(g.frameCount, cooldowns.line3) {
+		cooldowns.line3 = g.frameCount
 		return 2
 	}
 
-	if contains(keysPressed, ebiten.KeyR) && isLineNotInCoolDown(g.count, cooldowns.line4){
-		cooldowns.line4 = g.count
+	if contains(keysPressed, ebiten.KeyR) && isLineNotInCoolDown(g.frameCount, cooldowns.line4) {
+		cooldowns.line4 = g.frameCount
 		return 3
 	}
 	return -1

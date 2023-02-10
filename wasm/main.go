@@ -50,7 +50,7 @@ var (
 
 type Game struct {
 	audioContext *audio.Context
-	count        int
+	frameCount   int
 
 	character1         Character
 	character2         Character
@@ -127,7 +127,7 @@ func main() {
 
 	if err := ebiten.RunGame(&Game{
 		audioContext: audioCtx,
-		count:        700,
+		frameCount:   700,
 		character1: Character{
 			audioCharacter:  audioPlayer1,
 			notes:           []Note{},
