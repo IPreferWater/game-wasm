@@ -38,6 +38,7 @@ var (
 	arcadeFont font.Face
 	c1Back     *ebiten.Image
 	c2Back     *ebiten.Image
+	notesSprite *ebiten.Image
 )
 
 // TODO add const for specific player number
@@ -287,11 +288,25 @@ func main() {
 	}
 	knightImage := ebiten.NewImageFromImage(imgKnight)
 
+
+
 	imgC1Back,_,err := ebitenutil.NewImageFromFile("./res/dog/back.png")
+	if err != nil {
+		log.Fatal(err)
+	}
 	c1Back = imgC1Back
 
 	imgC2Back,_,err := ebitenutil.NewImageFromFile("./res/knight/back.png")
+	if err != nil {
+		log.Fatal(err)
+	}
 	c2Back = imgC2Back
+
+		imgNoteSprite, _, err := ebitenutil.NewImageFromFile("./res/note_sprite.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	notesSprite = ebiten.NewImageFromImage(imgNoteSprite)
 
 	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
 	if err != nil {

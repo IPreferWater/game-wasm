@@ -14,7 +14,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	//layouts
 	//ebitenutil.DrawRect(screen, 2, 2, layoutCharacterWidth, screenHeight*0.9, ParseHexColorFast("#0074D9"))
-	
+
 	screen.DrawImage(c1Back, &ebiten.DrawImageOptions{})
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(screenWidth-200, 0)
@@ -32,7 +32,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	if g.currentPhaseStance == c1Lost || g.currentPhaseStance == c2Lost {
-		drawLost(screen,g)
+		drawLost(screen, g)
 		return
 	}
 
@@ -43,13 +43,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawCharacter(g.character1.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight/3)
 	drawCharacter(g.character2.characterSprite, Playing, g.count, screen, screenWidth/2, screenHeight-screenHeight/3)
 
+	//TODO refactor this method
 	for _, note := range g.character1.notes {
-		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#10ac84"))
+		opNotes := &ebiten.DrawImageOptions{}
+		opNotes.GeoM.Translate(float64(note.x), float64(note.y))
+		xStart := note.line*noteSize
+		subRectangle := image.Rect(xStart, 0, xStart+noteSize, noteSize)
+		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
 	}
 	for _, note := range g.character2.notes {
-		ebitenutil.DrawRect(screen, float64(note.x), float64(note.y), noteSize, noteSize, ParseHexColorFast("#f368e0"))
+		opNotes := &ebiten.DrawImageOptions{}
+		opNotes.GeoM.Translate(float64(note.x), float64(note.y))
+		xStart := (note.line*noteSize) + (noteSize*4)
+		subRectangle := image.Rect(xStart, 0, xStart+noteSize, noteSize)
+		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
 	}
 
+	//FADEAWAY TODO
 	for _, noteFadeAway := range g.character1.notesToFadeAway {
 		ebitenutil.DrawRect(screen, float64(noteFadeAway.note.x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(4)})
 	}
@@ -61,18 +71,21 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//s := fmt.Sprintf("frame count : %d\n mapNoteToPlay size : %d\n c1Notes : %v", g.count, len(g.mapNoteToPlay), g.character1.notes)
 	s := fmt.Sprintf("frame count : %d\n currentPhaseStance : %d\n", g.count, g.currentPhaseStance)
 	ebitenutil.DebugPrint(screen, s)
-	// 40 widht
-	// 10 sprite
-	// tous les 50
-	/*if !g.typing {
-		t := (g.count / 20) % 20
-		if t > 9 {
-			t = 20 - t - 1
-		}
-		s := fmt.Sprintf("score : %d\nmissed : %d\n frame count : %d\n test : %d", g.score, g.missed, g.count, t)
-		ebitenutil.DebugPrint(screen, s)
-	}*/
 }
+
+/*func getNoteSpriteRectangleFromLine(line int)image.Rectangle{
+	switch line {
+	case 1:
+        fmt.Println("one")
+    case 1:
+        fmt.Println("one")
+    case 2:
+        fmt.Println("two")
+    case 3:
+        fmt.Println("three")
+    }
+ return image.Rect(0, 0, 25, 25)
+}*/
 
 func drawIntro(screen *ebiten.Image, g *Game) {
 
@@ -111,7 +124,6 @@ func drawLost(screen *ebiten.Image, g *Game) {
 }
 
 func drawAddNote(screen *ebiten.Image, g *Game) {
-
 	text.Draw(screen, "Add a note !!! !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
 }
 
