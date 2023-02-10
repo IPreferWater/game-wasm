@@ -52,6 +52,24 @@ type Cooldown struct {
 	line4 int
 }
 
+func initNewCharacter(audio AudioCharacter, img *ebiten.Image, sprites map[SpriteStance]Sprite )Character {
+	return Character{
+		audioCharacter:  audio,
+		notes:           []Note{},
+		notesToFadeAway: []NoteFadeAway{},
+		characterSprite: CharacterSprite{
+			img:     img,
+			sprites: sprites,
+		},
+		cooldown: Cooldown{
+			line1: -coolDownFrameForSameNote,
+			line2: -coolDownFrameForSameNote,
+			line3: -coolDownFrameForSameNote,
+			line4: -coolDownFrameForSameNote,
+		},
+	}
+}
+
 func (c *Character) updateNotesAndCheckIfLost() bool {
 	notes := c.notes
 	for i := 0; i < len(notes); i++ {

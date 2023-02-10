@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"image/color"
 	_ "image/png"
 	"log"
 	"os"
@@ -64,40 +63,25 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
 }
 
+func getEbitenImageFromRes(path string) *ebiten.Image {
+	img, _, err := ebitenutil.NewImageFromFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return img
+}
 func main() {
-	// Decode an image from the image file's byte slice.
-	// Now the byte slice is generated with //go:generate for Go 1.15 or older.
-	// If you use Go 1.16 or newer, it is strongly recommended to use //go:embed to embed the image file.
-	// See https://pkg.go.dev/embed for more details.
-	img, _, err := ebitenutil.NewImageFromFile("./res/sprite_dog.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	dogImage := ebiten.NewImageFromImage(img)
 
-	imgKnight, _, err := ebitenutil.NewImageFromFile("./res/sprite_knight.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	knightImage := ebiten.NewImageFromImage(imgKnight)
+	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
+	ebiten.SetWindowTitle("TODONAME")
 
-	imgC1Back, _, err := ebitenutil.NewImageFromFile("./res/dog/back.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	c1Back = imgC1Back
+	dogImage := getEbitenImageFromRes("./res/sprite_dog.png")
+	knightImage := getEbitenImageFromRes("./res/sprite_knight.png")
 
-	imgC2Back, _, err := ebitenutil.NewImageFromFile("./res/knight/back.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	c2Back = imgC2Back
-
-	imgNoteSprite, _, err := ebitenutil.NewImageFromFile("./res/note_sprite.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	notesSprite = ebiten.NewImageFromImage(imgNoteSprite)
+	c1Back = getEbitenImageFromRes("./res/dog/back.png")
+	c2Back = getEbitenImageFromRes("./res/knight/back.png")
+	notesSprite = getEbitenImageFromRes("./res/note_sprite.png")
 
 	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
 	if err != nil {
@@ -116,48 +100,17 @@ func main() {
 
 	dogSprites := initDogSprites()
 	knightSprites := initKnightSprites()
-	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
-	ebiten.SetWindowTitle("TODONAME")
 
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
-	//playWillTellOvertur(audioCtx)
 	audioPlayer1 := initAudioCharacter(audioCtx, "dog")
 	audioPlayer2 := initAudioCharacter(audioCtx, "knight")
 
 	if err := ebiten.RunGame(&Game{
-		audioContext: audioCtx,
-		frameCount:   700,
-		character1: Character{
-			audioCharacter:  audioPlayer1,
-			notes:           []Note{},
-			notesToFadeAway: []NoteFadeAway{},
-			characterSprite: CharacterSprite{
-				img:     dogImage,
-				sprites: dogSprites,
-			},
-			cooldown: Cooldown{
-				line1: -coolDownFrameForSameNote,
-				line2: -coolDownFrameForSameNote,
-				line3: -coolDownFrameForSameNote,
-				line4: -coolDownFrameForSameNote,
-			},
-		},
-		character2: Character{
-			audioCharacter:  audioPlayer2,
-			notes:           []Note{},
-			notesToFadeAway: []NoteFadeAway{},
-			characterSprite: CharacterSprite{
-				img:     knightImage,
-				sprites: knightSprites,
-			},
-			cooldown: Cooldown{
-				line1: 0,
-				line2: 0,
-				line3: 0,
-				line4: 0,
-			},
-		},
+		audioContext:       audioCtx,
+		frameCount:         700,
+		character1:         initNewCharacter(audioPlayer1, dogImage, dogSprites),
+		character2:         initNewCharacter(audioPlayer2, knightImage, knightSprites),
 		currentPhaseStance: intro,
 		mapNoteToPlay:      map[int]int{},
 		notesDisplayed:     0,
@@ -201,36 +154,4 @@ func getPlayer(fileName string, audioCtx *audio.Context) *audio.Player {
 		panic(err)
 	}
 	return p
-}
-
-func ParseHexColorFast(s string) (c color.RGBA) {
-	c.A = 0xff
-
-	if s[0] != '#' {
-		return c
-	}
-
-	hexToByte := func(b byte) byte {
-		switch {
-		case b >= '0' && b <= '9':
-			return b - '0'
-		case b >= 'a' && b <= 'f':
-			return b - 'a' + 10
-		case b >= 'A' && b <= 'F':
-			return b - 'A' + 10
-		}
-		return 0
-	}
-
-	switch len(s) {
-	case 7:
-		c.R = hexToByte(s[1])<<4 + hexToByte(s[2])
-		c.G = hexToByte(s[3])<<4 + hexToByte(s[4])
-		c.B = hexToByte(s[5])<<4 + hexToByte(s[6])
-	case 4:
-		c.R = hexToByte(s[1]) * 17
-		c.G = hexToByte(s[2]) * 17
-		c.B = hexToByte(s[3]) * 17
-	}
-	return
 }
