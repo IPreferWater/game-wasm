@@ -1,8 +1,11 @@
-module github.com/golangbot/webassembly
+module github.com/ipreferwater/game-wasm
 
 go 1.18
 
-require github.com/hajimehoshi/ebiten/v2 v2.4.16
+require (
+	github.com/hajimehoshi/ebiten/v2 v2.4.16
+	golang.org/x/image v0.3.0
+)
 
 require (
 	github.com/hajimehoshi/oto/v2 v2.3.1 // indirect
@@ -16,7 +19,6 @@ require (
 	github.com/hajimehoshi/file2byteslice v1.0.0 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.3 // indirect
 	github.com/jezek/xgb v1.1.0 // indirect
-	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/mobile v0.0.0-20221110043201-43a038452099 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect

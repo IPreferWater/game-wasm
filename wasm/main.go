@@ -20,54 +20,33 @@ import (
 const (
 	screenWidth  = 512
 	screenHeight = 240
-	//area where we play
-	layoutCharacterWidth = 200
-	startLayoutC2        = 312
 
+	// Where we display the playing are of 1 character
+	layoutCharacterWidth = 200
+	// Where the x playing area of character 2 si starting
+	startLayoutC2 = 312
+
+	// Size of the square in pixel of 1 note
 	noteSize = 25
 
-	lineMiddleY      = 190
+	// Where the note should be typed on the playing area
+	lineMiddleY = 190
+	// Hitbox for the notes
 	lineMiddleMargin = 25
 
-	introFramesNbr             = 700
-	firstTypingAttackFramesNbr = 300
-	coolDownFrameForSameNote   = 40
+	// How many frame for the introduction stance
+	introFramesNbr = 700
+
+	// How many frame we wait before be able to type the same note on attack stance
+	coolDownFrameForSameNote = 40
 )
 
 var (
-	arcadeFont font.Face
-	c1Back     *ebiten.Image
-	c2Back     *ebiten.Image
+	arcadeFont  font.Face
+	c1Back      *ebiten.Image
+	c2Back      *ebiten.Image
 	notesSprite *ebiten.Image
 )
-
-// TODO add const for specific player number
-type Character struct {
-	audioCharacter  AudioCharacter
-	notes           []Note
-	notesToFadeAway []NoteFadeAway
-	characterSprite CharacterSprite
-	cooldown        Cooldown
-}
-
-type CharacterSprite struct {
-	img     *ebiten.Image
-	sprites map[SpriteStance]Sprite
-}
-
-type Cooldown struct {
-	line1 int
-	line2 int
-	line3 int
-	line4 int
-}
-
-type AudioCharacter struct {
-	sound0 *audio.Player
-	sound1 *audio.Player
-	sound2 *audio.Player
-	sound3 *audio.Player
-}
 
 type Game struct {
 	audioContext *audio.Context
@@ -81,192 +60,6 @@ type Game struct {
 	williamTellPlayer  *audio.Player
 }
 
-type NoteFadeAway struct {
-	note    Note
-	success bool
-	count   int
-}
-
-type Note struct {
-	x         float32
-	y         float32
-	line      int
-	direction direction
-}
-
-type direction int64
-
-const (
-	up direction = iota
-	down
-)
-
-func (g *Game) Update() error {
-
-	g.count++
-
-	switch g.currentPhaseStance {
-	case intro:
-		//g.williamTellPlayer.Play()
-		if g.count >= introFramesNbr {
-			g.currentPhaseStance = firstAttackC1
-			g.count = 0
-		}
-	case firstAttackC1:
-		/*if !g.williamTellPlayer.IsPlaying() {
-			g.williamTellPlayer.Rewind()
-			g.williamTellPlayer.Play()
-		}*/
-		if len(g.mapNoteToPlay) >= 3 {
-			g.currentPhaseStance = defendC2
-			g.count = 0
-		}
-		line := checkActionStartAttack(g)
-		if line <= -1 {
-			break
-		}
-
-		g.mapNoteToPlay[g.count] = line
-		g.character1.notes = append(g.character1.notes, Note{
-			x:         getPositionInLine(line, 0),
-			y:         screenHeight - 20,
-			line:      line,
-			direction: up,
-		})
-	case defendC2:
-
-		if g.notesDisplayed >= len(g.mapNoteToPlay) && len(g.character2.notes) <= 0 {
-			g.currentPhaseStance = addNoteC2
-			break
-		}
-		//DEFEND
-		if line, ok := g.mapNoteToPlay[g.count]; ok {
-			x := getPositionInLine(line, startLayoutC2)
-			g.character2.notes = append(g.character2.notes, Note{
-				x:         x,
-				y:         20,
-				line:      line,
-				direction: down,
-			})
-			g.notesDisplayed++
-		}
-		checkActionC2(g)
-	case addNoteC2:
-		lineToAddNote := getLineOfnoteAdded(g, false)
-		if lineToAddNote > -1 {
-
-			// 160 is aprox the time a note reach the line
-			count := g.count - 160
-			g.mapNoteToPlay[count] = lineToAddNote
-
-			g.currentPhaseStance = defendC1
-			g.count = 0
-			g.notesDisplayed = 0
-		}
-	case defendC1:
-		if g.notesDisplayed >= len(g.mapNoteToPlay) && len(g.character1.notes) <= 0 {
-			g.currentPhaseStance = addNoteC1
-			break
-		}
-		//DEFEND
-		if line, ok := g.mapNoteToPlay[g.count]; ok {
-			x := getPositionInLine(line, 0)
-			g.character1.notes = append(g.character1.notes, Note{
-				x:         x,
-				y:         20,
-				line:      line,
-				direction: down,
-			})
-			g.notesDisplayed++
-		}
-		checkActionC1(g)
-	case addNoteC1:
-		lineToAddNote := getLineOfnoteAdded(g, true)
-		if lineToAddNote > -1 {
-
-			count := g.count - 160
-			g.mapNoteToPlay[count] = lineToAddNote
-
-			g.currentPhaseStance = defendC2
-			g.count = 0
-			g.notesDisplayed = 0
-		}
-	case c1Lost, c2Lost:
-		// stop musique
-		if g.williamTellPlayer.IsPlaying() {
-			g.williamTellPlayer.Pause()
-		}
-		// replay
-		if checkActionResetGame(g) {
-			g.count = 0
-			g.currentPhaseStance = firstAttackC1
-			g.mapNoteToPlay = make(map[int]int)
-			g.character1.notes = []Note{}
-			g.character2.notes = []Note{}
-			g.character1.cooldown = Cooldown{
-				line1: -coolDownFrameForSameNote,
-				line2: -coolDownFrameForSameNote,
-				line3: -coolDownFrameForSameNote,
-				line4: -coolDownFrameForSameNote,
-			}
-			g.notesDisplayed = 0
-		}
-		return nil
-
-	default:
-	}
-
-	if g.character1.updateNotesAndCheckIfLost() {
-		g.currentPhaseStance = c1Lost
-	}
-	if g.character2.updateNotesAndCheckIfLost() {
-		g.currentPhaseStance = c2Lost
-	}
-
-	return nil
-}
-
-func (c *Character) updateNotesAndCheckIfLost() bool {
-	notes := c.notes
-	for i := 0; i < len(notes); i++ {
-		//update position
-		if notes[i].direction == up {
-			notes[i].y -= 1
-		} else {
-			notes[i].y += 1
-		}
-
-		// if out of scope, it's lost
-		if (notes[i].y < 0+10) || notes[i].y > screenHeight-10 {
-			if notes[i].direction == down {
-				return true
-			}
-			notes = removeNoteAnyOrder(notes, i)
-			i--
-		}
-	}
-
-	for i := 0; i < len(c.notesToFadeAway); i++ {
-		c.notesToFadeAway[i].count++
-
-		if c.notesToFadeAway[i].count >= 100 {
-			c.notesToFadeAway = removeNoteToFadeAwayAnyOrder(c.notesToFadeAway, i)
-			i--
-		}
-	}
-	c.notes = notes
-	return false
-}
-
-func removeNoteAnyOrder(s []Note, i int) []Note {
-	s[i] = s[len(s)-1]
-	return s[:len(s)-1]
-}
-
-func removeNoteToFadeAwayAnyOrder(s []NoteFadeAway, i int) []NoteFadeAway {
-	s[i] = s[len(s)-1]
-	return s[:len(s)-1]
-}
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
 }
@@ -288,21 +81,19 @@ func main() {
 	}
 	knightImage := ebiten.NewImageFromImage(imgKnight)
 
-
-
-	imgC1Back,_,err := ebitenutil.NewImageFromFile("./res/dog/back.png")
+	imgC1Back, _, err := ebitenutil.NewImageFromFile("./res/dog/back.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 	c1Back = imgC1Back
 
-	imgC2Back,_,err := ebitenutil.NewImageFromFile("./res/knight/back.png")
+	imgC2Back, _, err := ebitenutil.NewImageFromFile("./res/knight/back.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 	c2Back = imgC2Back
 
-		imgNoteSprite, _, err := ebitenutil.NewImageFromFile("./res/note_sprite.png")
+	imgNoteSprite, _, err := ebitenutil.NewImageFromFile("./res/note_sprite.png")
 	if err != nil {
 		log.Fatal(err)
 	}

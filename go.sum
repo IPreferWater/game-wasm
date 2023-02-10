@@ -5,6 +5,7 @@ github.com/ebitengine/purego v0.1.1/go.mod h1:Eh8I3yvknDYZeCuXH9kRNaPuHEwvXDCk37
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20220806181222-55e207c401ad/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b h1:GgabKamyOYguHqHjSkDACcgoPIz3w0Dis/zJ1wyHHHU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
+github.com/hajimehoshi/bitmapfont/v2 v2.2.2 h1:4z08Fk1m3pjtlO7BdoP48u5bp/Y8xmKshf44aCXgYpE=
 github.com/hajimehoshi/bitmapfont/v2 v2.2.2/go.mod h1:Ua/x9Dkz7M9CU4zr1VHWOqGwjKdXbOTRsH7lWfb1Co0=
 github.com/hajimehoshi/ebiten/v2 v2.4.16 h1:vhuMtaB78N2HlNMfImV/SZkDPNJhOxgFrEIm1uh838o=
 github.com/hajimehoshi/ebiten/v2 v2.4.16/go.mod h1:BZcqCU4XHmScUi+lsKexocWcf4offMFwfp8dVGIB/G4=

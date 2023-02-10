@@ -14,3 +14,4 @@ TODO :
 - display the cooldown
 - fade away is not working
 - make a blinking "call to action" for c1 to make him start the game
+- increase speed over time
