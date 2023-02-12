@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func (g *Game) Update() error {
 
 	g.frameCount++
@@ -18,6 +20,7 @@ func (g *Game) Update() error {
 			g.williamTellPlayer.Play()
 		}*/
 		if len(g.mapNoteToPlay) >= 3 {
+			g.shortenNotesToPlay()
 			g.currentPhaseStance = defendC2
 			g.frameCount = 0
 		}
@@ -133,4 +136,32 @@ func (g *Game) Update() error {
 	}
 
 	return nil
+}
+
+func (g *Game) shortenNotesToPlay() {
+	min := -1
+
+	fmt.Println(g.mapNoteToPlay)
+	for frame, _ := range g.mapNoteToPlay {
+		// min == -1 mean it was not set yet
+		if min == -1 {
+			min = frame
+			continue
+		}
+		if frame < min {
+			min = frame
+		}
+	}
+
+	newMap := make(map[int]int)
+
+	//don't shorten too much or character 2 will have to play to quick
+	frameToShorten := min-20
+	for frame, line := range g.mapNoteToPlay {
+		newMap[frame-frameToShorten] = line
+	}
+	fmt.Println(newMap)
+
+	g.mapNoteToPlay = newMap
+	fmt.Println(g.mapNoteToPlay)
 }

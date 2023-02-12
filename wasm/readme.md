@@ -16,4 +16,4 @@ TODO :
 - fade away is not working
 ❌ can't increase g.frameCount more than one or it break the notes to display[increase speed over time] 
 - refactor draw.go
-- remove the wait before start to type the first note
+✔️ remove the wait before start to type the first note
