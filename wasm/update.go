@@ -142,7 +142,7 @@ func (g *Game) shortenNotesToPlay() {
 	min := -1
 
 	fmt.Println(g.mapNoteToPlay)
-	for frame, _ := range g.mapNoteToPlay {
+	for frame := range g.mapNoteToPlay {
 		// min == -1 mean it was not set yet
 		if min == -1 {
 			min = frame

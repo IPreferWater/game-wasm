@@ -43,6 +43,7 @@ type NoteFadeAway struct {
 type CharacterSprite struct {
 	img     *ebiten.Image
 	sprites map[SpriteStance]Sprite
+	//TODO this might be redundant
 	ySprite float64
 }
 

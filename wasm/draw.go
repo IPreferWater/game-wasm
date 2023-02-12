@@ -11,12 +11,6 @@ import (
 )
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.DrawImage(c1Back, &ebiten.DrawImageOptions{})
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(screenWidth-200, 0)
-	screen.DrawImage(c2Back, op)
-
-	ebitenutil.DrawLine(screen, 0, lineMiddleY, screenWidth, screenHeight-50, color.RGBA{200, 50, 150, 150})
 
 	if g.currentPhaseStance == intro {
 		drawIntro(screen, g)
@@ -35,25 +29,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.currentPhaseStance == firstAttackC1 {
 		drawBlinkingNote(screen, g)
 	}
-	
+
 	drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
 	drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
 
-	//TODO refactor this method
-	for _, note := range g.character1.notes {
-		opNotes := &ebiten.DrawImageOptions{}
-		opNotes.GeoM.Translate(float64(note.x), float64(note.y))
-		xStart := note.line * noteSize
-		subRectangle := image.Rect(xStart, 0, xStart+noteSize, noteSize)
-		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
-	}
-	for _, note := range g.character2.notes {
-		opNotes := &ebiten.DrawImageOptions{}
-		opNotes.GeoM.Translate(float64(note.x), float64(note.y))
-		xStart := (note.line * noteSize) + (noteSize * 4)
-		subRectangle := image.Rect(xStart, 0, xStart+noteSize, noteSize)
-		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
-	}
+	drawNotes(screen, g.character1.notes, true)
+	drawNotes(screen, g.character2.notes, true)
 
 	//FADEAWAY TODO
 	for _, noteFadeAway := range g.character1.notesToFadeAway {
@@ -69,26 +50,53 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, s)
 }
 
+func drawBackground(screen *ebiten.Image) {
+	screen.DrawImage(c1Back, &ebiten.DrawImageOptions{})
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(screenWidth-200, 0)
+	screen.DrawImage(c2Back, op)
+
+	ebitenutil.DrawLine(screen, 0, lineMiddleY, screenWidth, screenHeight-50, color.RGBA{200, 50, 150, 150})
+}
+
+func drawNotes(screen *ebiten.Image, notes []Note, isC1 bool) {
+
+	startLayout := 0
+	if !isC1 {
+		startLayout += startLayoutC2
+	}
+
+	for _, note := range notes {
+		opNotes := &ebiten.DrawImageOptions{}
+		opNotes.GeoM.Translate(float64(note.x), float64(note.y))
+
+		xStart := (note.line * noteSize) + startLayout
+		subRectangle := image.Rect(xStart, 0, xStart+noteSize, noteSize)
+		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
+	}
+
+}
+
 func drawBlinkingNote(screen *ebiten.Image, g *Game) {
 	if g.blink {
-		for i:=0; i<4;i++{
-			opNotes := &ebiten.DrawImageOptions{}	
-			x :=  getPositionInLine(i,0)
-			
+		for i := 0; i < 4; i++ {
+			opNotes := &ebiten.DrawImageOptions{}
+			x := getPositionInLine(i, 0)
+
 			opNotes.GeoM.Translate(float64(x), screenHeight-noteSize)
 			subRectangle := image.Rect(i*noteSize, 0, (i+1)*noteSize, noteSize)
 			screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
 		}
 	}
-	
+
 }
 
 /*func drawCoolDowns(screen *ebiten.Image, g *Game) {
 
 	for i:=0; i<8;i++{
-		opNotes := &ebiten.DrawImageOptions{}	
+		opNotes := &ebiten.DrawImageOptions{}
 		x := getPositionForCoolDowns(i)
-		
+
 		opNotes.GeoM.Translate(float64(x), screenHeight-noteSize)
 		subRectangle := image.Rect(i*noteSize, 0, (i+1)*noteSize, noteSize)
 		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
@@ -121,7 +129,7 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 
 func drawLost(screen *ebiten.Image, g *Game) {
 
-	getWinnerLooser := func() (string, string) {
+	drawAndgetWinnerLooser := func() (string, string) {
 		if g.currentPhaseStance == c1Lost {
 			drawCharacter(g.character1.characterSprite, Lost, g.frameCount, screen)
 			drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
@@ -131,7 +139,7 @@ func drawLost(screen *ebiten.Image, g *Game) {
 		drawCharacter(g.character2.characterSprite, Lost, g.frameCount, screen)
 		return "1", "2"
 	}
-	winner, looser := getWinnerLooser()
+	winner, looser := drawAndgetWinnerLooser()
 	txt := fmt.Sprintf("Player %s win !\n Player %s is such a looser ...", winner, looser)
 	text.Draw(screen, txt, arcadeFont, screenWidth/2, screenHeight/4, color.White)
 
@@ -147,7 +155,7 @@ func drawCharacter(characterSprite CharacterSprite, spriteStance SpriteStance, f
 	sprite := characterSprite.sprites[spriteStance]
 
 	op := &ebiten.DrawImageOptions{}
-	xMidle := (screenWidth/2) - (sprite.width/2)
+	xMidle := (screenWidth / 2) - (sprite.width / 2)
 	op.GeoM.Translate(float64(xMidle), characterSprite.ySprite)
 
 	spriteIdx := int(frameCount/sprite.changeSpriteAfterFrames) % (sprite.numberOfSprites * 2)
