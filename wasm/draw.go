@@ -11,7 +11,8 @@ import (
 )
 
 func (g *Game) Draw(screen *ebiten.Image) {
-
+	drawBackground(screen)
+	
 	if g.currentPhaseStance == intro {
 		drawIntro(screen, g)
 		return

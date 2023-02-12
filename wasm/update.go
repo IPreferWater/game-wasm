@@ -141,7 +141,6 @@ func (g *Game) Update() error {
 func (g *Game) shortenNotesToPlay() {
 	min := -1
 
-	fmt.Println(g.mapNoteToPlay)
 	for frame := range g.mapNoteToPlay {
 		// min == -1 mean it was not set yet
 		if min == -1 {
@@ -160,8 +159,6 @@ func (g *Game) shortenNotesToPlay() {
 	for frame, line := range g.mapNoteToPlay {
 		newMap[frame-frameToShorten] = line
 	}
-	fmt.Println(newMap)
 
 	g.mapNoteToPlay = newMap
-	fmt.Println(g.mapNoteToPlay)
 }
