@@ -11,20 +11,12 @@ import (
 )
 
 func (g *Game) Draw(screen *ebiten.Image) {
-
-	//layouts
-
-
 	screen.DrawImage(c1Back, &ebiten.DrawImageOptions{})
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(screenWidth-200, 0)
 	screen.DrawImage(c2Back, op)
 
-
-
 	ebitenutil.DrawLine(screen, 0, lineMiddleY, screenWidth, screenHeight-50, color.RGBA{200, 50, 150, 150})
-	//ebitenutil.DrawLine(screen, 0, lineMiddleY-lineMiddleMargin, screenWidth, lineMiddleY-lineMiddleMargin, color.RGBA{100, 80, 150, 150})
-	//ebitenutil.DrawLine(screen, 0, lineMiddleY+lineMiddleMargin, screenWidth, lineMiddleY+lineMiddleMargin, color.RGBA{220, 140, 90, 150})
 
 	if g.currentPhaseStance == intro {
 		drawIntro(screen, g)
@@ -44,8 +36,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		drawBlinkingNote(screen, g)
 	}
 	
-	drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight/3)
-	drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight-screenHeight/3)
+	drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
+	drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
 
 	//TODO refactor this method
 	for _, note := range g.character1.notes {
@@ -116,14 +108,14 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 	text.Draw(screen, "New Fight !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
 
 	if g.frameCount > 200 {
-		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight/4)
+		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
 	}
 
 	if g.frameCount > 300 {
 		text.Draw(screen, "Versus", arcadeFont, screenWidth/2, screenHeight/2, color.White)
 	}
 	if g.frameCount > 400 {
-		drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight-(screenHeight/3))
+		drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
 	}
 }
 
@@ -131,12 +123,12 @@ func drawLost(screen *ebiten.Image, g *Game) {
 
 	getWinnerLooser := func() (string, string) {
 		if g.currentPhaseStance == c1Lost {
-			drawCharacter(g.character1.characterSprite, Lost, g.frameCount, screen, screenWidth/2, screenHeight/4)
-			drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight-(screenHeight/3))
+			drawCharacter(g.character1.characterSprite, Lost, g.frameCount, screen)
+			drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
 			return "2", "1"
 		}
-		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight/4)
-		drawCharacter(g.character2.characterSprite, Lost, g.frameCount, screen, screenWidth/2, screenHeight-(screenHeight/3))
+		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
+		drawCharacter(g.character2.characterSprite, Lost, g.frameCount, screen)
 		return "1", "2"
 	}
 	winner, looser := getWinnerLooser()
@@ -151,11 +143,13 @@ func drawAddNote(screen *ebiten.Image, g *Game) {
 	text.Draw(screen, "Add a note !!! !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
 }
 
-func drawCharacter(characterSprite CharacterSprite, spriteStance SpriteStance, frameCount int, screen *ebiten.Image, x, y float64) {
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(x, y)
-
+func drawCharacter(characterSprite CharacterSprite, spriteStance SpriteStance, frameCount int, screen *ebiten.Image) {
 	sprite := characterSprite.sprites[spriteStance]
+
+	op := &ebiten.DrawImageOptions{}
+	xMidle := (screenWidth/2) - (sprite.width/2)
+	op.GeoM.Translate(float64(xMidle), characterSprite.ySprite)
+
 	spriteIdx := int(frameCount/sprite.changeSpriteAfterFrames) % (sprite.numberOfSprites * 2)
 	if spriteIdx > sprite.numberOfSprites {
 		spriteIdx = (sprite.numberOfSprites * 2) - spriteIdx - 1

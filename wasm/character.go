@@ -43,6 +43,7 @@ type NoteFadeAway struct {
 type CharacterSprite struct {
 	img     *ebiten.Image
 	sprites map[SpriteStance]Sprite
+	ySprite float64
 }
 
 type Cooldown struct {
@@ -52,7 +53,7 @@ type Cooldown struct {
 	line4 int
 }
 
-func initNewCharacter(audio AudioCharacter, img *ebiten.Image, sprites map[SpriteStance]Sprite )Character {
+func initNewCharacter(audio AudioCharacter, img *ebiten.Image, sprites map[SpriteStance]Sprite,ySprite float64 )Character {
 	return Character{
 		audioCharacter:  audio,
 		notes:           []Note{},
@@ -60,6 +61,7 @@ func initNewCharacter(audio AudioCharacter, img *ebiten.Image, sprites map[Sprit
 		characterSprite: CharacterSprite{
 			img:     img,
 			sprites: sprites,
+			ySprite: ySprite,
 		},
 		cooldown: Cooldown{
 			line1: -coolDownFrameForSameNote,

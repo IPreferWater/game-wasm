@@ -25,6 +25,8 @@ const (
 	// Where the x playing area of character 2 si starting
 	startLayoutC2 = 312
 
+
+
 	// Size of the square in pixel of 1 note
 	noteSize = 25
 
@@ -39,6 +41,9 @@ const (
 
 	// How many frame we wait before be able to type the same note on attack stance
 	coolDownFrameForSameNote = 40
+
+	yDogSprite = 20
+	yKnightSprite = 100
 )
 
 var (
@@ -79,8 +84,8 @@ func main() {
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 	ebiten.SetWindowTitle("TODONAME")
 
-	dogImage := getEbitenImageFromRes("./res/sprite_dog.png")
-	knightImage := getEbitenImageFromRes("./res/sprite_knight.png")
+	dogImage := getEbitenImageFromRes("./res/dog/sprite.png")
+	knightImage := getEbitenImageFromRes("./res/knight/sprite.png")
 
 	c1Back = getEbitenImageFromRes("./res/dog/back.png")
 	c2Back = getEbitenImageFromRes("./res/knight/back.png")
@@ -112,8 +117,8 @@ func main() {
 	if err := ebiten.RunGame(&Game{
 		audioContext:       audioCtx,
 		frameCount:         700,
-		character1:         initNewCharacter(audioPlayer1, dogImage, dogSprites),
-		character2:         initNewCharacter(audioPlayer2, knightImage, knightSprites),
+		character1:         initNewCharacter(audioPlayer1, dogImage, dogSprites, yDogSprite),
+		character2:         initNewCharacter(audioPlayer2, knightImage, knightSprites, yKnightSprite),
 		currentPhaseStance: intro,
 		mapNoteToPlay:      map[int]int{},
 		notesDisplayed:     0,
