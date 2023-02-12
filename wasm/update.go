@@ -1,10 +1,8 @@
 package main
 
-
 func (g *Game) Update() error {
 
 	g.frameCount++
-
 
 	switch g.currentPhaseStance {
 	case intro:
@@ -13,6 +11,7 @@ func (g *Game) Update() error {
 			g.currentPhaseStance = firstAttackC1
 			g.frameCount = 0
 		}
+
 	case firstAttackC1:
 		/*if !g.williamTellPlayer.IsPlaying() {
 			g.williamTellPlayer.Rewind()
@@ -22,6 +21,14 @@ func (g *Game) Update() error {
 			g.currentPhaseStance = defendC2
 			g.frameCount = 0
 		}
+
+		//blink for call to action
+		g.blinkCount++
+		if g.blinkCount > blinkFrameNbr {
+			g.blinkCount = 0
+			g.blink = !g.blink
+		}
+
 		line := checkActionStartAttack(g)
 		if line <= -1 {
 			break
@@ -34,6 +41,7 @@ func (g *Game) Update() error {
 			line:      line,
 			direction: up,
 		})
+
 	case defendC2:
 
 		if g.notesDisplayed >= len(g.mapNoteToPlay) && len(g.character2.notes) <= 0 {

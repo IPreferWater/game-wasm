@@ -35,6 +35,7 @@ const (
 
 	// How many frame for the introduction stance
 	introFramesNbr = 700
+	blinkFrameNbr = 35
 
 	// How many frame we wait before be able to type the same note on attack stance
 	coolDownFrameForSameNote = 40
@@ -56,6 +57,8 @@ type Game struct {
 	currentPhaseStance PhaseStance
 	mapNoteToPlay      map[int]int
 	notesDisplayed     int
+	blink              bool
+	blinkCount			int
 	williamTellPlayer  *audio.Player
 }
 
@@ -115,6 +118,8 @@ func main() {
 		mapNoteToPlay:      map[int]int{},
 		notesDisplayed:     0,
 		williamTellPlayer:  getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx),
+		blink: false,
+		blinkCount: 0,
 	}); err != nil {
 		log.Fatal(err)
 	}

@@ -40,6 +40,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		drawAddNote(screen, g)
 	}
 
+	if g.currentPhaseStance == firstAttackC1 {
+		drawBlinkingNote(screen, g)
+	}
+	
 	drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight/3)
 	drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen, screenWidth/2, screenHeight-screenHeight/3)
 
@@ -73,18 +77,38 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, s)
 }
 
-/*func getNoteSpriteRectangleFromLine(line int)image.Rectangle{
-	switch line {
-	case 1:
-        fmt.Println("one")
-    case 1:
-        fmt.Println("one")
-    case 2:
-        fmt.Println("two")
-    case 3:
-        fmt.Println("three")
-    }
- return image.Rect(0, 0, 25, 25)
+func drawBlinkingNote(screen *ebiten.Image, g *Game) {
+	if g.blink {
+		for i:=0; i<4;i++{
+			opNotes := &ebiten.DrawImageOptions{}	
+			x :=  getPositionInLine(i,0)
+			
+			opNotes.GeoM.Translate(float64(x), screenHeight-noteSize)
+			subRectangle := image.Rect(i*noteSize, 0, (i+1)*noteSize, noteSize)
+			screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
+		}
+	}
+	
+}
+
+/*func drawCoolDowns(screen *ebiten.Image, g *Game) {
+
+	for i:=0; i<8;i++{
+		opNotes := &ebiten.DrawImageOptions{}	
+		x := getPositionForCoolDowns(i)
+		
+		opNotes.GeoM.Translate(float64(x), screenHeight-noteSize)
+		subRectangle := image.Rect(i*noteSize, 0, (i+1)*noteSize, noteSize)
+		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
+	}
+}*/
+
+/*func getPositionForCoolDowns(noteNumber int) float32 {
+	// the first 4 notes are for character 1, the 4 lasts for character 2
+	if noteNumber<=3 {
+		return getPositionInLine(noteNumber,0)
+	}
+	return getPositionInLine(noteNumber-4,startLayoutC2)
 }*/
 
 func drawIntro(screen *ebiten.Image, g *Game) {

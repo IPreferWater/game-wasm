@@ -12,7 +12,8 @@ TODO :
 ✔️ switch squares to a "buble" sprite
 
 - display the cooldown
+✔️ make a blinking "call to action" for c1 to make him start the game
 - fade away is not working
-- make a blinking "call to action" for c1 to make him start the game
 ❌ can't increase g.frameCount more than one or it break the notes to display[increase speed over time] 
 - refactor draw.go
+- remove the wait before start to type the first note
