@@ -1,24 +1,22 @@
 package main
 
-import "fmt"
-
 func (g *Game) Update() error {
 
 	g.frameCount++
 
 	switch g.currentPhaseStance {
 	case intro:
-		//g.williamTellPlayer.Play()
+		g.williamTellPlayer.Play()
 		if g.frameCount >= introFramesNbr {
 			g.currentPhaseStance = firstAttackC1
 			g.frameCount = 0
 		}
 
 	case firstAttackC1:
-		/*if !g.williamTellPlayer.IsPlaying() {
+		if !g.williamTellPlayer.IsPlaying() {
 			g.williamTellPlayer.Rewind()
 			g.williamTellPlayer.Play()
-		}*/
+		}
 		if len(g.mapNoteToPlay) >= 3 {
 			g.shortenNotesToPlay()
 			g.currentPhaseStance = defendC2
@@ -155,7 +153,7 @@ func (g *Game) shortenNotesToPlay() {
 	newMap := make(map[int]int)
 
 	//don't shorten too much or character 2 will have to play to quick
-	frameToShorten := min-20
+	frameToShorten := min - 20
 	for frame, line := range g.mapNoteToPlay {
 		newMap[frame-frameToShorten] = line
 	}

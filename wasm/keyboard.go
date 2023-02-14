@@ -113,7 +113,7 @@ func setCoolDown(c *Character, line int, frameCount int) {
 	case 3:
 		c.cooldown.line4 = frameCount
 	default:
-		panic(fmt.Sprintf("should have a line between 1 & 4 but got %d", line))
+		fmt.Printf("should have a line between 1 & 4 but got %d\n", line)
 	}
 }
 

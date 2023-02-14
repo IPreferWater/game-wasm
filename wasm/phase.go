@@ -13,6 +13,7 @@ const (
 	addNoteC1
 	c1Lost
 	c2Lost
+	gameError
 )
 
 

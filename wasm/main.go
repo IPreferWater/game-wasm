@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	_ "image/png"
-	"log"
+	"io"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -25,8 +25,6 @@ const (
 	// Where the x playing area of character 2 si starting
 	startLayoutC2 = 312
 
-
-
 	// Size of the square in pixel of 1 note
 	noteSize = 25
 
@@ -37,12 +35,12 @@ const (
 
 	// How many frame for the introduction stance
 	introFramesNbr = 700
-	blinkFrameNbr = 35
+	blinkFrameNbr  = 35
 
 	// How many frame we wait before be able to type the same note on attack stance
 	coolDownFrameForSameNote = 40
 
-	yDogSprite = 20
+	yDogSprite    = 20
 	yKnightSprite = 100
 )
 
@@ -51,6 +49,7 @@ var (
 	c1Back      *ebiten.Image
 	c2Back      *ebiten.Image
 	notesSprite *ebiten.Image
+	errors      []string
 )
 
 type Game struct {
@@ -63,7 +62,7 @@ type Game struct {
 	mapNoteToPlay      map[int]int
 	notesDisplayed     int
 	blink              bool
-	blinkCount			int
+	blinkCount         int
 	williamTellPlayer  *audio.Player
 }
 
@@ -71,29 +70,46 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
 }
 
-func getEbitenImageFromRes(path string) *ebiten.Image {
+func getEbitenImageFromRes(path string) (*ebiten.Image, error) {
 	img, _, err := ebitenutil.NewImageFromFile(path)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return img
+	return img, nil
 }
 func main() {
-
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 	ebiten.SetWindowTitle("TODONAME")
 
-	dogImage := getEbitenImageFromRes("./res/dog/sprite.png")
-	knightImage := getEbitenImageFromRes("./res/knight/sprite.png")
+	dogImage, err := getEbitenImageFromRes("./res/dog/sprite.png")
+	if err != nil {
+		addError(err)
+	}
 
-	c1Back = getEbitenImageFromRes("./res/dog/back.png")
-	c2Back = getEbitenImageFromRes("./res/knight/back.png")
-	notesSprite = getEbitenImageFromRes("./res/note_sprite.png")
+	knightImage, err := getEbitenImageFromRes("./res/knight/sprite.png")
+	if err != nil {
+		addError(err)
+	}
+
+	c1Back, err = getEbitenImageFromRes("./res/dog/back.png")
+	if err != nil {
+		addError(err)
+	}
+
+	c2Back, err = getEbitenImageFromRes("./res/knight/back.png")
+	if err != nil {
+		addError(err)
+	}
+
+	notesSprite, err = getEbitenImageFromRes("./res/note_sprite.png")
+	if err != nil {
+		addError(err)
+	}
 
 	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
 	if err != nil {
-		log.Fatal(err)
+		addError(err)
 	}
 
 	const (
@@ -112,56 +128,97 @@ func main() {
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
 	audioPlayer1 := initAudioCharacter(audioCtx, "dog")
-	audioPlayer2 := initAudioCharacter(audioCtx, "knight")
+	audioPlayer2:= initAudioCharacter(audioCtx, "knight")
+
+	williamTellPlayer :=  newFuncNewPlayer(william_tell_overture_8_bit, audioCtx)
+
+	if len(errors) > 0 {
+		fmt.Println("yes?")
+		for i, err := range errors {
+			fmt.Printf("error %d => %s\n", i, err)
+		}
+		fmt.Println(errors)
+		if err := ebiten.RunGame(&Game{
+			currentPhaseStance: gameError,
+		}); err != nil {
+			fmt.Println(err)
+		}
+	}
 
 	if err := ebiten.RunGame(&Game{
 		audioContext:       audioCtx,
-		frameCount:         700,
+		frameCount:         0,
 		character1:         initNewCharacter(audioPlayer1, dogImage, dogSprites, yDogSprite),
 		character2:         initNewCharacter(audioPlayer2, knightImage, knightSprites, yKnightSprite),
 		currentPhaseStance: intro,
 		mapNoteToPlay:      map[int]int{},
 		notesDisplayed:     0,
-		williamTellPlayer:  getPlayer("./res/william_tell_overture_8_bit.mp3", audioCtx),
-		blink: false,
-		blinkCount: 0,
+		williamTellPlayer:  williamTellPlayer,
+		blink:              false,
+		blinkCount:         0,
 	}); err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 }
 
-func initAudioCharacter(audioCtx *audio.Context, folderName string) AudioCharacter {
-	mapPath := make(map[int]string)
+func addError(err error) {
+	errors = append(errors, err.Error())
+}
+func initAudioCharacter(audioCtx *audio.Context, characterName string) AudioCharacter {
 
-	for i := 0; i <= 3; i++ {
-		path := fmt.Sprintf("./res/%s/sound_%d.mp3", folderName, i)
-		mapPath[i] = path
+	if characterName == "dog" {
+
+		return AudioCharacter{
+			sound0: newFuncNewPlayer(dog_sound_0, audioCtx),
+			sound1: newFuncNewPlayer(dog_sound_1, audioCtx),
+			sound2: newFuncNewPlayer(dog_sound_2, audioCtx),
+			sound3: newFuncNewPlayer(dog_sound_3, audioCtx),
+		}
 	}
 
 	return AudioCharacter{
-		sound0: getPlayer(mapPath[0], audioCtx),
-		sound1: getPlayer(mapPath[1], audioCtx),
-		sound2: getPlayer(mapPath[2], audioCtx),
-		sound3: getPlayer(mapPath[3], audioCtx),
+		sound0: newFuncNewPlayer(dog_sound_0, audioCtx),
+		sound1: newFuncNewPlayer(dog_sound_1, audioCtx),
+		sound2: newFuncNewPlayer(dog_sound_2, audioCtx),
+		sound3: newFuncNewPlayer(dog_sound_3, audioCtx),
 	}
 }
 
-func getPlayer(fileName string, audioCtx *audio.Context) *audio.Player {
+func newFuncNewPlayer(b []byte, audioContext *audio.Context) *audio.Player {
+	type audioStream interface {
+		io.ReadSeeker
+		Length() int64
+	}
+
+	const bytesPerSample = 4 // TODO: This should be defined in audio package
+
+	s, err := mp3.DecodeWithoutResampling(bytes.NewReader(b))
+	if err != nil {
+		fmt.Printf("error new player => %s\n", s)
+		return nil
+	}
+
+	p, err := audioContext.NewPlayer(s)
+	if err != nil {
+		fmt.Printf("error new player => %s\n", s)
+		return nil
+	}
+	return p
+}
+
+func getPlayer(fileName string, audioCtx *audio.Context) (*audio.Player, error) {
 	b, err := os.ReadFile(fileName) // just pass the file name
 	if err != nil {
-		fmt.Print("readfile")
-		panic(err)
+		return nil, fmt.Errorf("error on readFile %s => %s\n", fileName, err)
 	}
 	s, err := mp3.DecodeWithoutResampling(bytes.NewReader(b))
 	if err != nil {
-		fmt.Print("decode")
-		panic(err)
+		return nil, fmt.Errorf("error on decode %s => %s\n", fileName, err)
 	}
 	p, err := audioCtx.NewPlayer(s)
 	if err != nil {
-		fmt.Print("new player")
-		panic(err)
+		return nil, fmt.Errorf("error creating newPlayer %s => %s\n", fileName, err)
 	}
-	return p
+	return p, nil
 }

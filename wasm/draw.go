@@ -11,6 +11,10 @@ import (
 )
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.currentPhaseStance == gameError {
+		text.Draw(screen, "error", nil, screenWidth/2, screenHeight/2, color.White)
+		return
+	}
 	drawBackground(screen)
 	
 	if g.currentPhaseStance == intro {
