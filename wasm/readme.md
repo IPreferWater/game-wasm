@@ -10,9 +10,8 @@ TODO :
 ✔️ make a blinking "call to action" for c1 to make him start the game
 ❌ can't increase g.frameCount more than one or it break the notes to display[increase speed over time] 
 ✔️ remove the wait before start to type the first note
-
+✔️ refactor draw.go
 - add horizontal lines only when it's your time to play
 - display the cooldown
 - fade away is not working
-- refactor draw.go
 - Should include the sprite and font go:embeded like mp3

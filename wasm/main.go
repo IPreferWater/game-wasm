@@ -24,6 +24,9 @@ const (
 	layoutCharacterWidth = 200
 	// Where the x playing area of character 2 si starting
 	startLayoutC2 = 312
+	xMiddleTxt = screenWidth-startLayoutC2 + 10
+	yMiddleTxt = 90
+	yTopText = 24
 
 	// Size of the square in pixel of 1 note
 	noteSize = 25
@@ -40,7 +43,7 @@ const (
 	// How many frame we wait before be able to type the same note on attack stance
 	coolDownFrameForSameNote = 40
 
-	yDogSprite    = 20
+	yDogSprite    = 28
 	yKnightSprite = 100
 )
 
@@ -80,7 +83,7 @@ func getEbitenImageFromRes(path string) (*ebiten.Image, error) {
 }
 func main() {
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
-	ebiten.SetWindowTitle("TODONAME")
+	ebiten.SetWindowTitle("IPreferWater Bubble Game")
 
 	dogImage, err := getEbitenImageFromRes("./res/dog/sprite.png")
 	if err != nil {

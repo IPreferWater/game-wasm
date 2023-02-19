@@ -16,7 +16,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		return
 	}
 	drawBackground(screen)
-	
+
 	if g.currentPhaseStance == intro {
 		drawIntro(screen, g)
 		return
@@ -118,14 +118,14 @@ func drawBlinkingNote(screen *ebiten.Image, g *Game) {
 
 func drawIntro(screen *ebiten.Image, g *Game) {
 
-	text.Draw(screen, "New Fight !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
+	text.Draw(screen, "New Fight !", arcadeFont, xMiddleTxt, yTopText, color.White)
 
 	if g.frameCount > 200 {
 		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
 	}
 
 	if g.frameCount > 300 {
-		text.Draw(screen, "Versus", arcadeFont, screenWidth/2, screenHeight/2, color.White)
+		text.Draw(screen, "Versus", arcadeFont, xMiddleTxt, yMiddleTxt, color.White)
 	}
 	if g.frameCount > 400 {
 		drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
@@ -134,26 +134,20 @@ func drawIntro(screen *ebiten.Image, g *Game) {
 
 func drawLost(screen *ebiten.Image, g *Game) {
 
-	drawAndgetWinnerLooser := func() (string, string) {
-		if g.currentPhaseStance == c1Lost {
-			drawCharacter(g.character1.characterSprite, Lost, g.frameCount, screen)
-			drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
-			return "2", "1"
-		}
+	if g.currentPhaseStance == c1Lost {
+		drawCharacter(g.character1.characterSprite, Lost, g.frameCount, screen)
+		drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
+	} else {
 		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
 		drawCharacter(g.character2.characterSprite, Lost, g.frameCount, screen)
-		return "1", "2"
 	}
-	winner, looser := drawAndgetWinnerLooser()
-	txt := fmt.Sprintf("Player %s win !\n Player %s is such a looser ...", winner, looser)
-	text.Draw(screen, txt, arcadeFont, screenWidth/2, screenHeight/4, color.White)
 
-	txtReplay := fmt.Sprintf("Tape space to replay")
-	text.Draw(screen, txtReplay, arcadeFont, screenWidth/2, screenHeight/2, color.White)
+	txtReplay := fmt.Sprintf("Tape space\nto replay")
+	text.Draw(screen, txtReplay, arcadeFont, xMiddleTxt, yTopText, color.White)
 }
 
 func drawAddNote(screen *ebiten.Image, g *Game) {
-	text.Draw(screen, "Add a note !!! !", arcadeFont, screenWidth/2, screenHeight/4, color.White)
+	text.Draw(screen, "Add a note !", arcadeFont, xMiddleTxt, yMiddleTxt, color.White)
 }
 
 func drawCharacter(characterSprite CharacterSprite, spriteStance SpriteStance, frameCount int, screen *ebiten.Image) {
