@@ -56,10 +56,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func drawBackground(screen *ebiten.Image) {
-	screen.DrawImage(c1Back, &ebiten.DrawImageOptions{})
+	screen.DrawImage(dogBack, &ebiten.DrawImageOptions{})
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(screenWidth-200, 0)
-	screen.DrawImage(c2Back, op)
+	screen.DrawImage(knightBack, op)
 
 	ebitenutil.DrawLine(screen, 0, lineMiddleY, screenWidth, screenHeight-50, color.RGBA{200, 50, 150, 150})
 }
@@ -137,9 +137,11 @@ func drawLost(screen *ebiten.Image, g *Game) {
 	if g.currentPhaseStance == c1Lost {
 		drawCharacter(g.character1.characterSprite, Lost, g.frameCount, screen)
 		drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
+		text.Draw(screen, "Knight won !", arcadeFont, xMiddleTxt, yKnightSprite+70, color.White)
 	} else {
 		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
 		drawCharacter(g.character2.characterSprite, Lost, g.frameCount, screen)
+		text.Draw(screen,fmt.Sprintf("Dog won !\nWouaf !") , arcadeFont, xMiddleTxt, yMiddleTxt, color.White)
 	}
 
 	txtReplay := fmt.Sprintf("Tape space\nto replay")

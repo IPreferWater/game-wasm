@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"image"
 	_ "image/png"
 	"io"
 	"os"
@@ -24,9 +25,9 @@ const (
 	layoutCharacterWidth = 200
 	// Where the x playing area of character 2 si starting
 	startLayoutC2 = 312
-	xMiddleTxt = screenWidth-startLayoutC2 + 10
-	yMiddleTxt = 90
-	yTopText = 24
+	xMiddleTxt    = screenWidth - startLayoutC2 + 10
+	yMiddleTxt    = 90
+	yTopText      = 24
 
 	// Size of the square in pixel of 1 note
 	noteSize = 25
@@ -49,8 +50,8 @@ const (
 
 var (
 	arcadeFont  font.Face
-	c1Back      *ebiten.Image
-	c2Back      *ebiten.Image
+	dogBack     *ebiten.Image
+	knightBack  *ebiten.Image
 	notesSprite *ebiten.Image
 	errors      []string
 )
@@ -81,34 +82,41 @@ func getEbitenImageFromRes(path string) (*ebiten.Image, error) {
 
 	return img, nil
 }
+
+func getEbitenImageFromEmbededBytes(b []byte) *ebiten.Image {
+
+	decoded, _, err := image.Decode(bytes.NewReader(b))
+	if err != nil {
+		panic(err)
+	}
+
+	return ebiten.NewImageFromImage(decoded)
+}
+
 func main() {
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 	ebiten.SetWindowTitle("IPreferWater Bubble Game")
 
-	dogImage, err := getEbitenImageFromRes("./res/dog/sprite.png")
+	dogImage := getEbitenImageFromEmbededBytes(dog_sprite_png)
+	knightImage := getEbitenImageFromEmbededBytes(knight_sprite_png)
+
+	dogBack = getEbitenImageFromEmbededBytes(dog_back_png)
+	/*c2BackDecoded, _, err := image.Decode(bytes.NewReader(c2BackPng))
 	if err != nil {
 		addError(err)
 	}
 
-	knightImage, err := getEbitenImageFromRes("./res/knight/sprite.png")
-	if err != nil {
-		addError(err)
-	}
+	c2Back =  ebiten.NewImageFromImage(c2BackDecoded)*/
+	knightBack = getEbitenImageFromEmbededBytes(knight_back_png)
 
-	c1Back, err = getEbitenImageFromRes("./res/dog/back.png")
-	if err != nil {
-		addError(err)
-	}
+	/*playerImg = ebiten.NewImageFromImage(playerDecoded)
 
 	c2Back, err = getEbitenImageFromRes("./res/knight/back.png")
 	if err != nil {
-		addError(err)
-	}
 
-	notesSprite, err = getEbitenImageFromRes("./res/note_sprite.png")
-	if err != nil {
-		addError(err)
-	}
+	}*/
+
+	notesSprite = getEbitenImageFromEmbededBytes(note_sprite_png)
 
 	tt, err := opentype.Parse(fonts.PressStart2P_ttf)
 	if err != nil {
@@ -131,9 +139,9 @@ func main() {
 	audioCtx := audio.NewContext(48000)
 	initWillTellOverture()
 	audioPlayer1 := initAudioCharacter(audioCtx, "dog")
-	audioPlayer2:= initAudioCharacter(audioCtx, "knight")
+	audioPlayer2 := initAudioCharacter(audioCtx, "knight")
 
-	williamTellPlayer :=  newFuncNewPlayer(william_tell_overture_8_bit, audioCtx)
+	williamTellPlayer := newFuncNewPlayer(william_tell_overture_8_bit, audioCtx)
 
 	if len(errors) > 0 {
 		fmt.Println("yes?")
@@ -181,10 +189,10 @@ func initAudioCharacter(audioCtx *audio.Context, characterName string) AudioChar
 	}
 
 	return AudioCharacter{
-		sound0: newFuncNewPlayer(dog_sound_0, audioCtx),
-		sound1: newFuncNewPlayer(dog_sound_1, audioCtx),
-		sound2: newFuncNewPlayer(dog_sound_2, audioCtx),
-		sound3: newFuncNewPlayer(dog_sound_3, audioCtx),
+		sound0: newFuncNewPlayer(knight_sound_0, audioCtx),
+		sound1: newFuncNewPlayer(knight_sound_1, audioCtx),
+		sound2: newFuncNewPlayer(knight_sound_2, audioCtx),
+		sound3: newFuncNewPlayer(knight_sound_3, audioCtx),
 	}
 }
 
