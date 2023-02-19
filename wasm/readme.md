@@ -15,3 +15,4 @@ TODO :
 - add horizontal lines only when it's your time to play
 - display the cooldown
 - fade away is not working
+- displayed notes are not good for knight

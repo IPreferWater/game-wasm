@@ -51,8 +51,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	//s := fmt.Sprintf("frame count : %d\n mapNoteToPlay size : %d\n c1Notes : %v", g.count, len(g.mapNoteToPlay), g.character1.notes)
-	s := fmt.Sprintf("frame count : %d\n currentPhaseStance : %d\n", g.frameCount, g.currentPhaseStance)
-	ebitenutil.DebugPrint(screen, s)
+	//ebitenutil.DebugPrint(screen, s)
 }
 
 func drawBackground(screen *ebiten.Image) {
