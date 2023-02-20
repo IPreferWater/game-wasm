@@ -39,7 +39,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawCharacter(g.character2.characterSprite, Playing, g.frameCount, screen)
 
 	drawNotes(screen, g.character1.notes, true)
-	drawNotes(screen, g.character2.notes, true)
+	drawNotes(screen, g.character2.notes, false)
 
 	//FADEAWAY TODO
 	for _, noteFadeAway := range g.character1.notesToFadeAway {
@@ -65,16 +65,16 @@ func drawBackground(screen *ebiten.Image) {
 
 func drawNotes(screen *ebiten.Image, notes []Note, isC1 bool) {
 
-	startLayout := 0
+	xStartSprite := 0
 	if !isC1 {
-		startLayout += startLayoutC2
+		xStartSprite += noteSize*4
 	}
 
 	for _, note := range notes {
 		opNotes := &ebiten.DrawImageOptions{}
 		opNotes.GeoM.Translate(float64(note.x), float64(note.y))
 
-		xStart := (note.line * noteSize) + startLayout
+		xStart := (note.line * noteSize) + xStartSprite
 		subRectangle := image.Rect(xStart, 0, xStart+noteSize, noteSize)
 		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
 	}
@@ -95,7 +95,7 @@ func drawBlinkingNote(screen *ebiten.Image, g *Game) {
 
 }
 
-/*func drawCoolDowns(screen *ebiten.Image, g *Game) {
+func drawCoolDowns(screen *ebiten.Image, g *Game) {
 
 	for i:=0; i<8;i++{
 		opNotes := &ebiten.DrawImageOptions{}
@@ -105,15 +105,15 @@ func drawBlinkingNote(screen *ebiten.Image, g *Game) {
 		subRectangle := image.Rect(i*noteSize, 0, (i+1)*noteSize, noteSize)
 		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
 	}
-}*/
+}
 
-/*func getPositionForCoolDowns(noteNumber int) float32 {
+func getPositionForCoolDowns(noteNumber int) float32 {
 	// the first 4 notes are for character 1, the 4 lasts for character 2
 	if noteNumber<=3 {
 		return getPositionInLine(noteNumber,0)
 	}
 	return getPositionInLine(noteNumber-4,startLayoutC2)
-}*/
+}
 
 func drawIntro(screen *ebiten.Image, g *Game) {
 

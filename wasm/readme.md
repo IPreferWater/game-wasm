@@ -12,7 +12,8 @@ TODO :
 ✔️ remove the wait before start to type the first note
 ✔️ refactor draw.go
 ✔️ Should include the sprite and font go:embeded like mp3
+✔️ displayed notes are not good for knight
 - add horizontal lines only when it's your time to play
 - display the cooldown
 - fade away is not working
-- displayed notes are not good for knight
+
