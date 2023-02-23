@@ -13,7 +13,7 @@ TODO :
 ✔️ refactor draw.go
 ✔️ Should include the sprite and font go:embeded like mp3
 ✔️ displayed notes are not good for knight
+✔️ display the cooldown
 - add horizontal lines only when it's your time to play
-- display the cooldown
 - fade away is not working
 

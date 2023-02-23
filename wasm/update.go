@@ -19,6 +19,7 @@ func (g *Game) Update() error {
 		}
 		if len(g.mapNoteToPlay) >= 3 {
 			g.shortenNotesToPlay()
+			g.character1.cooldown.resetCooldowns()
 			g.currentPhaseStance = defendC2
 			g.frameCount = 0
 		}
@@ -68,6 +69,7 @@ func (g *Game) Update() error {
 			// 160 is aprox the time a note reach the line
 			count := g.frameCount - 160
 			g.mapNoteToPlay[count] = lineToAddNote
+			g.character2.cooldown.resetCooldowns()
 
 			g.currentPhaseStance = defendC1
 			g.frameCount = 0
@@ -96,6 +98,7 @@ func (g *Game) Update() error {
 
 			count := g.frameCount - 160
 			g.mapNoteToPlay[count] = lineToAddNote
+			g.character1.cooldown.resetCooldowns()
 
 			g.currentPhaseStance = defendC2
 			g.frameCount = 0
@@ -113,12 +116,8 @@ func (g *Game) Update() error {
 			g.mapNoteToPlay = make(map[int]int)
 			g.character1.notes = []Note{}
 			g.character2.notes = []Note{}
-			g.character1.cooldown = Cooldown{
-				line1: -coolDownFrameForSameNote,
-				line2: -coolDownFrameForSameNote,
-				line3: -coolDownFrameForSameNote,
-				line4: -coolDownFrameForSameNote,
-			}
+			g.character2.cooldown.resetCooldowns()
+			g.character1.cooldown.resetCooldowns()
 			g.notesDisplayed = 0
 		}
 		return nil
@@ -134,6 +133,13 @@ func (g *Game) Update() error {
 	}
 
 	return nil
+}
+
+func (cd *Cooldown) resetCooldowns() {
+	cd.line1 = -50
+	cd.line2 = -50
+	cd.line3 = -50
+	cd.line4 = -50
 }
 
 func (g *Game) shortenNotesToPlay() {

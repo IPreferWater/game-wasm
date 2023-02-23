@@ -33,6 +33,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	if g.currentPhaseStance == firstAttackC1 {
 		drawBlinkingNote(screen, g)
+	} else {
+		drawCoolDowns(screen, g)
 	}
 
 	drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
@@ -49,7 +51,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for _, noteFadeAway := range g.character2.notesToFadeAway {
 		ebitenutil.DrawRect(screen, float64(noteFadeAway.note.x), float64(noteFadeAway.note.y), noteSize, noteSize, color.RGBA{75, 205, 111, uint8(6)})
 	}
-
+	
 	//s := fmt.Sprintf("frame count : %d\n mapNoteToPlay size : %d\n c1Notes : %v", g.count, len(g.mapNoteToPlay), g.character1.notes)
 	//ebitenutil.DebugPrint(screen, s)
 }
@@ -67,7 +69,7 @@ func drawNotes(screen *ebiten.Image, notes []Note, isC1 bool) {
 
 	xStartSprite := 0
 	if !isC1 {
-		xStartSprite += noteSize*4
+		xStartSprite += noteSize * 4
 	}
 
 	for _, note := range notes {
@@ -94,25 +96,57 @@ func drawBlinkingNote(screen *ebiten.Image, g *Game) {
 	}
 
 }
+// get correct CD depending on the line 
+func getCooldownInPercentage(line int, cd Cooldown, currentFrame int) float64 {
+	switch line {
+	case 0:
+		return calculCooldownInPercentage(cd.line1, currentFrame)
+	case 1:
+		return calculCooldownInPercentage(cd.line2, currentFrame)
+	case 2:
+		return calculCooldownInPercentage(cd.line3, currentFrame)
+	case 3:
+		return calculCooldownInPercentage(cd.line4, currentFrame)
+	}
+	return 1
+}
+
+// calcul in % the cd
+func calculCooldownInPercentage(cd int, currentFrame int) float64 {
+	if cd+coolDownFrameForSameNote < currentFrame {
+		return 1
+	}
+
+	did := currentFrame - cd
+	return float64((did*100)/coolDownFrameForSameNote) / 100
+}
 
 func drawCoolDowns(screen *ebiten.Image, g *Game) {
+	percentageOfCD := func(i int) float64 {
+		if i < 4 {
+			return getCooldownInPercentage(i, g.character1.cooldown, g.frameCount)
+		}
+		return getCooldownInPercentage(i-4, g.character2.cooldown, g.frameCount)
+	}
 
-	for i:=0; i<8;i++{
+	for i := 0; i < 8; i++ {
 		opNotes := &ebiten.DrawImageOptions{}
 		x := getPositionForCoolDowns(i)
 
 		opNotes.GeoM.Translate(float64(x), screenHeight-noteSize)
-		subRectangle := image.Rect(i*noteSize, 0, (i+1)*noteSize, noteSize)
+		yToPut := noteSize * percentageOfCD(i)
+		subRectangle := image.Rect(i*noteSize, 0, (i+1)*noteSize, int(yToPut))
+
 		screen.DrawImage(notesSprite.SubImage(subRectangle).(*ebiten.Image), opNotes)
 	}
 }
 
 func getPositionForCoolDowns(noteNumber int) float32 {
 	// the first 4 notes are for character 1, the 4 lasts for character 2
-	if noteNumber<=3 {
-		return getPositionInLine(noteNumber,0)
+	if noteNumber <= 3 {
+		return getPositionInLine(noteNumber, 0)
 	}
-	return getPositionInLine(noteNumber-4,startLayoutC2)
+	return getPositionInLine(noteNumber-4, startLayoutC2)
 }
 
 func drawIntro(screen *ebiten.Image, g *Game) {
@@ -140,7 +174,7 @@ func drawLost(screen *ebiten.Image, g *Game) {
 	} else {
 		drawCharacter(g.character1.characterSprite, Playing, g.frameCount, screen)
 		drawCharacter(g.character2.characterSprite, Lost, g.frameCount, screen)
-		text.Draw(screen,fmt.Sprintf("Dog won !\nWouaf !") , arcadeFont, xMiddleTxt, yMiddleTxt, color.White)
+		text.Draw(screen, fmt.Sprintf("Dog won !\nWouaf !"), arcadeFont, xMiddleTxt, yMiddleTxt, color.White)
 	}
 
 	txtReplay := fmt.Sprintf("Tape space\nto replay")
